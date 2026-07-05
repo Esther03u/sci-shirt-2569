@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 
 const PROTECTED = ['/distribute', '/dashboard'];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Only protect specific routes
