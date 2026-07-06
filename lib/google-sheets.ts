@@ -17,16 +17,7 @@ export interface ShirtOrder {
   [key: string]: string | number | undefined;
 }
 
-// Cache for sheet data (5 min TTL)
-let cache: { data: ShirtOrder[]; fetchedAt: number } | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
 export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]> {
-  const now = Date.now();
-  if (!forceRefresh && cache && now - cache.fetchedAt < CACHE_TTL_MS) {
-    return cache.data;
-  }
-
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
   const gidsToTry = ['0', '1', '2', ''];
@@ -36,9 +27,11 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
     try {
       const gidParam = gid ? `&gid=${gid}` : '';
       const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv${gidParam}`;
-      console.log(`[sheets] Trying CSV URL: ${csvUrl}`);
 
-      const res = await fetch(csvUrl, { cache: 'no-store' });
+      // Use Next.js fetch caching instead of in-memory cache
+      const res = await fetch(csvUrl, {
+        next: { revalidate: forceRefresh ? 0 : 300 }
+      });
 
       if (!res.ok) {
         console.warn(`[sheets] gid=${gid} failed with status ${res.status}`);
@@ -56,12 +49,8 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
       const orders = parseCsv(csv);
       if (orders.length === 0) {
         console.warn(`[sheets] gid=${gid} parsed 0 orders (phone column not found?)`);
-        console.log(`[sheets] Headers found: ${lines[0].substring(0, 200)}`);
-        // Still cache this result — better than nothing
       }
 
-      console.log(`[sheets] Success with gid=${gid}: ${orders.length} orders`);
-      cache = { data: orders, fetchedAt: now };
       return orders;
     } catch (err) {
       lastError = err;
@@ -70,10 +59,6 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
   }
 
   console.error('[sheets] All gid attempts failed. Last error:', lastError);
-  if (cache) {
-    console.warn('[sheets] Returning stale cache as fallback');
-    return cache.data;
-  }
   return [];
 }
 
