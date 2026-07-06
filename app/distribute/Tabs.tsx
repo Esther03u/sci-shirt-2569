@@ -328,7 +328,7 @@ export function AllOrdersTab({
 
           <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
             {[
-              { label: 'ลำดับ', value: `#${selectedOrder.rowIndex}` },
+              { label: 'ลำดับ', value: `#${selectedOrder.displayId || selectedOrder.rowIndex}` },
               { label: 'ไซส์',  value: selectedOrder.size || '-' },
               { label: 'จำนวน', value: `${selectedOrder.quantity} ตัว` },
             ].map(({ label, value }) => (

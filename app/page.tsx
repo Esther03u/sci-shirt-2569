@@ -65,19 +65,16 @@ export default function HomePage() {
       <div className="bg-ambient" aria-hidden="true" />
 
       {/* ── Navbar ── */}
-      <nav className="navbar">
+      <nav className="navbar" style={{ backdropFilter: 'blur(16px)', background: 'oklch(0 0 0 / 0.4)', borderBottom: '1px solid oklch(1 1 1 / 0.05)', boxShadow: '0 4px 30px oklch(0 0 0 / 0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
           <div style={{
-            width: 36, height: 36,
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
-            borderRadius: 'var(--radius-md)',
+            width: 46, height: 46,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px var(--color-primary-glow)',
             flexShrink: 0,
+            position: 'relative'
           }}>
-            <TShirt size={18} color="#fff" weight="fill" />
+            <img src="/smo-logo.png" alt="SMO Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }} />
           </div>
-          <span className="navbar-brand">SCI Shirt 2569</span>
         </div>
         <a href="/login" className="btn btn-outline btn-sm">
           เข้าสู่ระบบ <ArrowRight size={14} weight="bold" />
@@ -89,40 +86,39 @@ export default function HomePage() {
         <div className="container" style={{ maxWidth: 680 }}>
 
           {/* ── Hero Header ── */}
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)', animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1)' }}>
             {/* Chip */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-5)' }}>
-              <span className="chip">
+              <span className="chip" style={{ animation: 'fadeIn 1s ease-out 0.2s both' }}>
                 <Sparkle size={11} weight="fill" />
                 คณะวิทยาศาสตร์และเทคโนโลยี • มรภ.ภูเก็ต
               </span>
             </div>
 
-            {/* Icon Orb */}
+            {/* Hero Logo */}
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 80,
-              height: 80,
-              background: 'radial-gradient(circle at 30% 30%, var(--color-secondary), var(--color-primary))',
-              borderRadius: 'var(--radius-2xl)',
-              marginBottom: 'var(--space-6)',
-              boxShadow: '0 0 40px var(--color-primary-glow), 0 0 80px var(--color-primary-light), inset 0 1px 0 oklch(1 0 0 / 0.20)',
+              width: 100,
+              height: 100,
+              marginBottom: 'var(--space-4)',
+              animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both',
+              position: 'relative'
             }}>
-              <TShirt size={40} color="#fff" weight="duotone" />
+              <img src="/smo-logo.png" alt="SMO Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }} />
             </div>
 
-            <h1 style={{ marginBottom: 'var(--space-4)', color: 'var(--color-foreground)' }}>
-              ตรวจสอบสถานะ{' '}
-              <span className="gradient-text">เสื้อ Freshy</span>{' '}
-              2569
+            <h1 style={{ marginBottom: 'var(--space-4)', color: 'var(--color-foreground)', fontSize: '1.75rem', lineHeight: 1.4, animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both', letterSpacing: '-0.02em' }}>
+              เช็คลำดับรายชื่อรับเสื้อ<span className="gradient-text">เฟรชชี่</span><br />
+              คณะวิทยาศาสตร์และเทคโนโลยี 2569
             </h1>
             <p style={{
               color: 'var(--color-text-muted)',
               margin: '0 auto',
               maxWidth: 480,
               lineHeight: 1.75,
+              animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s both'
             }}>
               กรอกเบอร์โทรศัพท์ที่ลงทะเบียนไว้<br />
               เพื่อตรวจสอบข้อมูลและสถานะการรับเสื้อ
@@ -320,14 +316,25 @@ export default function HomePage() {
 
       {/* ── Footer ── */}
       <footer style={{
-        padding: 'var(--space-6) var(--space-4)',
+        padding: 'var(--space-8) var(--space-4)',
         textAlign: 'center',
         borderTop: '1px solid var(--glass-border)',
-        color: 'var(--color-text-light)',
+        background: 'linear-gradient(to top, oklch(1 0 0 / 0.02), transparent)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 'var(--space-2)',
         fontSize: 'var(--text-xs)',
       }}>
-        <span style={{ opacity: 0.7 }}>
-          คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏภูเก็ต © 2569
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <Sparkle size={12} weight="duotone" style={{ color: 'var(--color-primary)' }} />
+          <span style={{ fontWeight: 500, letterSpacing: '0.02em', color: 'var(--color-text-muted)' }}>
+            สโมสรนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี
+          </span>
+          <Sparkle size={12} weight="duotone" style={{ color: 'var(--color-accent)' }} />
+        </div>
+        <span style={{ color: 'var(--color-text-light)', opacity: 0.6 }}>
+          มหาวิทยาลัยราชภัฏภูเก็ต © 2569
         </span>
       </footer>
     </div>

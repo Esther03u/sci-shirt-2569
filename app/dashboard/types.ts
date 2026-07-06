@@ -3,6 +3,7 @@ export type Filter = 'all' | 'distributed' | 'pending';
 
 export interface Order {
   rowIndex: number;
+  displayId: string;
   name: string;
   phone: string;
   size: string;

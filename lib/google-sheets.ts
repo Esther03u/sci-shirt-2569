@@ -6,6 +6,7 @@ const SHEET_ID = process.env.GOOGLE_SHEETS_ID || '1Lbc8y8Te4YplBJNFPcJdQvxBB0hY2
 
 export interface ShirtOrder {
   rowIndex: number;
+  displayId: string;
   timestamp: string;
   phone: string;
   name: string;
@@ -20,7 +21,7 @@ export interface ShirtOrder {
 export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]> {
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
-  const gidsToTry = ['0', '1', '2', ''];
+  const gidsToTry = ['1257582283', '0', '1', '2', ''];
   let lastError: unknown;
 
   for (const gid of gidsToTry) {
@@ -81,13 +82,14 @@ function parseCsv(csv: string): ShirtOrder[] {
     // Normalize common column names (Thai and English)
     const order: ShirtOrder = {
       rowIndex: i,
+      displayId: row['ลำดับ'] || row['No'] || row['ID'] || String(i),
       timestamp: row['Timestamp'] || row['เวลา'] || row['timestamp'] || '',
       phone: normalizePhone(
         row['เบอร์โทรศัพท์ติดต่อ'] || row['เบอร์โทรศัพท์'] || row['Phone'] || row['phone'] || 
         row['เบอร์โทร'] || row['โทรศัพท์'] || ''
       ),
       name: row['ชื่อ-นามสกุล'] || row['ชื่อ'] || row['Name'] || row['name'] || '',
-      size: row['เลือกไซส์เสื้อ (ดูรายละเอียดขนาดในตาราง)'] || row['ไซส์'] || row['ขนาด'] || row['Size'] || row['size'] || '',
+      size: row['เลือกไซส์เสื้อ'] || row['เลือกไซส์เสื้อ (ดูรายละเอียดขนาดในตาราง)'] || row['ไซส์'] || row['ขนาด'] || row['Size'] || row['size'] || '',
       quantity: parseInt(row['จำนวนที่สั่งซื้อ (ตัว)'] || row['จำนวน'] || row['Quantity'] || '1') || 1,
       color: row['สี'] || row['Color'] || '',
       note: row['หมายเหตุเพิ่มเติม (ถ้ามี)'] || row['หมายเหตุ'] || row['Note'] || '',

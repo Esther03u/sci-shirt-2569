@@ -11,6 +11,7 @@ export interface MyStats {
 
 export interface OrderRow {
   rowIndex: number;
+  displayId: string;
   name: string;
   phone: string;
   size: string;

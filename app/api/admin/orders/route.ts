@@ -38,13 +38,16 @@ export async function GET() {
 
   // Per-distributor stats
   const distributorStats: Record<string, { name: string; count: number; lastAt: string }> = {};
-  (distributions ?? []).forEach(d => {
-    const id = d.distributed_by;
-    const name = (d.distributors as Record<string, string>)?.name ?? 'ไม่ทราบ';
-    if (!distributorStats[id]) distributorStats[id] = { name, count: 0, lastAt: '' };
-    distributorStats[id].count++;
-    if (!distributorStats[id].lastAt || d.distributed_at > distributorStats[id].lastAt) {
-      distributorStats[id].lastAt = d.distributed_at;
+  enriched.forEach(o => {
+    if (o.distribution) {
+      const d = o.distribution as any;
+      const id = d.distributed_by || 'unknown';
+      const name = d.distributors?.name ?? 'ไม่ทราบ';
+      if (!distributorStats[id]) distributorStats[id] = { name, count: 0, lastAt: '' };
+      distributorStats[id].count++;
+      if (!distributorStats[id].lastAt || d.distributed_at > distributorStats[id].lastAt) {
+        distributorStats[id].lastAt = d.distributed_at;
+      }
     }
   });
 

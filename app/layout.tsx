@@ -9,9 +9,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'SCI Shirt 2569 — คณะวิทยาศาสตร์และเทคโนโลยี',
+  title: 'SMO SciTech — คณะวิทยาศาสตร์และเทคโนโลยี',
   description: 'ระบบตรวจสอบและจัดการแจกเสื้อ Freshy คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏภูเก็ต ปี 2569',
-  keywords: 'เสื้อ freshy คณะวิทยาศาสตร์ ราชภัฏภูเก็ต',
+  keywords: 'เสื้อ freshy คณะวิทยาศาสตร์ ราชภัฏภูเก็ต, smo scitech',
 };
 
 export default function RootLayout({
@@ -27,6 +27,7 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Kanit:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
+          crossOrigin="anonymous"
         />
       </head>
       <body>{children}</body>

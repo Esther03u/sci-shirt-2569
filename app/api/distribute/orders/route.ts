@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
 
   let enriched = orders.map(order => ({
     rowIndex: order.rowIndex,
+    displayId: order.displayId,
     name: order.name,
     phone: order.phone,
     size: order.size,
@@ -39,6 +40,8 @@ export async function GET(req: NextRequest) {
     slipUrl: order.slipUrl ?? null,
     distribution: distMap.get(order.phone) ?? null,
   }));
+
+  const distributedCount = enriched.filter(o => o.distribution !== null).length;
 
   // Filter by status
   if (filter === 'distributed') {
@@ -58,6 +61,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     orders: enriched,
     total: orders.length,
-    distributed: distributions?.length ?? 0,
+    distributed: distributedCount,
   });
 }

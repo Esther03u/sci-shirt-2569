@@ -197,7 +197,7 @@ export function OrdersTab({
               {filtered.map(order => (
                 <tr key={order.rowIndex} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background var(--transition-fast)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--color-border)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <td style={{ padding: 'var(--space-3) var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text-light)', fontWeight: 600 }}>
-                    {order.rowIndex}
+                    {order.displayId || order.rowIndex}
                   </td>
                   <td style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 700, color: 'var(--color-foreground)' }}>
                     {order.name}

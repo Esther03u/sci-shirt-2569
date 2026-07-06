@@ -2,37 +2,43 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createAdminSupabase, getSession } from '@/lib/supabase-server';
+import { fetchSheetData } from '@/lib/google-sheets';
 
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const supabase = await createAdminSupabase();
+  const [supabase, orders] = await Promise.all([
+    createAdminSupabase(),
+    fetchSheetData()
+  ]);
 
-  // All distributions for this user (not cancelled)
-  const { data: myDists } = await supabase
+  const { data: allDists } = await supabase
     .from('distributions')
-    .select('id, sheet_row_id, phone, distributed_at')
-    .eq('distributed_by', session.user.id)
+    .select('id, sheet_row_id, phone, distributed_at, distributed_by')
     .eq('cancelled', false)
     .order('distributed_at', { ascending: false });
+
+  const dists = allDists ?? [];
+  const validPhones = new Set(orders.map(o => o.phone));
+
+  // Only count distributions that correspond to a valid order in the sheet
+  const validDists = dists.filter(d => validPhones.has(d.phone));
+  
+  const myDists = validDists.filter(d => d.distributed_by === session.user.id);
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
-  const totalMine = myDists?.length ?? 0;
-  const todayMine = myDists?.filter(d => d.distributed_at >= todayStart).length ?? 0;
-  const recentFive = myDists?.slice(0, 5) ?? [];
+  const totalMine = myDists.length;
+  const todayMine = myDists.filter(d => d.distributed_at >= todayStart).length;
+  const recentFive = myDists.slice(0, 5);
 
-  // Overall stats (all distributors)
-  const { count: totalAll } = await supabase
-    .from('distributions')
-    .select('id', { count: 'exact', head: true })
-    .eq('cancelled', false);
+  const totalAll = validDists.length;
 
   return NextResponse.json({
     myStats: { total: totalMine, today: todayMine },
-    overall: { distributed: totalAll ?? 0 },
+    overall: { distributed: totalAll },
     recentFive,
   });
 }
