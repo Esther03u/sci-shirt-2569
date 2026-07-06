@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { data: dist } = await supabase
       .from('distributions')
       .select('*, distributors(name)')
-      .eq('sheet_row_id', String(order.rowIndex))
+      .eq('phone', order.phone)
       .eq('cancelled', false)
       .single();
 

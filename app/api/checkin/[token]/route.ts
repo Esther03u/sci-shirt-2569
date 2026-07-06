@@ -1,6 +1,6 @@
 // app/api/checkin/[token]/route.ts — QR token lookup + distribute action
 import { NextRequest, NextResponse } from 'next/server';
-import { decodeOrderId, findOrderByRowIndex } from '@/lib/google-sheets';
+import { decodeOrderId, findOrderByPhone } from '@/lib/google-sheets';
 import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 // GET: decode token and return order + distribution status
@@ -15,7 +15,7 @@ export async function GET(
     return NextResponse.json({ error: 'QR Code ไม่ถูกต้อง' }, { status: 400 });
   }
 
-  const order = await findOrderByRowIndex(decoded.rowIndex);
+  const order = await findOrderByPhone(decoded.phone);
   if (!order) {
     return NextResponse.json({ error: 'ไม่พบข้อมูลการสั่งซื้อ' }, { status: 404 });
   }
@@ -24,7 +24,7 @@ export async function GET(
   const { data: dist } = await supabase
     .from('distributions')
     .select('*, distributors(name)')
-    .eq('sheet_row_id', String(order.rowIndex))
+    .eq('phone', order.phone)
     .eq('cancelled', false)
     .single();
 
@@ -48,7 +48,7 @@ export async function POST(
     return NextResponse.json({ error: 'QR Code ไม่ถูกต้อง' }, { status: 400 });
   }
 
-  const order = await findOrderByRowIndex(decoded.rowIndex);
+  const order = await findOrderByPhone(decoded.phone);
   if (!order) {
     return NextResponse.json({ error: 'ไม่พบข้อมูลการสั่งซื้อ' }, { status: 404 });
   }
@@ -59,7 +59,7 @@ export async function POST(
   const { data: existing } = await supabase
     .from('distributions')
     .select('id')
-    .eq('sheet_row_id', String(order.rowIndex))
+    .eq('phone', order.phone)
     .eq('cancelled', false)
     .single();
 

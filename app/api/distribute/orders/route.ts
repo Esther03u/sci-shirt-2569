@@ -22,11 +22,11 @@ export async function GET(req: NextRequest) {
 
   const { data: distributions } = await supabase
     .from('distributions')
-    .select('sheet_row_id, distributed_at, distributors(name)')
+    .select('sheet_row_id, phone, distributed_at, distributors(name)')
     .eq('cancelled', false);
 
   const distMap = new Map(
-    (distributions ?? []).map(d => [d.sheet_row_id, d])
+    (distributions ?? []).map(d => [d.phone, d])
   );
 
   let enriched = orders.map(order => ({
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     size: order.size,
     quantity: order.quantity,
     slipUrl: order.slipUrl ?? null,
-    distribution: distMap.get(String(order.rowIndex)) ?? null,
+    distribution: distMap.get(order.phone) ?? null,
   }));
 
   // Filter by status

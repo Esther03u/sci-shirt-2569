@@ -23,12 +23,12 @@ export async function GET() {
     .eq('cancelled', false);
 
   const distMap = new Map(
-    (distributions ?? []).map(d => [d.sheet_row_id, d])
+    (distributions ?? []).map(d => [d.phone, d])
   );
 
   const enriched = orders.map(order => ({
     ...order,
-    distribution: distMap.get(String(order.rowIndex)) ?? null,
+    distribution: distMap.get(order.phone) ?? null,
   }));
 
   // Stats

@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const { data: existing } = await supabase
     .from('distributions')
     .select('id')
-    .eq('sheet_row_id', String(sheetRowId))
+    .eq('phone', phone)
     .eq('cancelled', false)
     .single();
 

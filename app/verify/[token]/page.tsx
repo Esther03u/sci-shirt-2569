@@ -2,7 +2,7 @@
 // หน้าที่เปิดเมื่อ scan QR Code — แสดงข้อมูลทันที + ปุ่มแจกถ้า login อยู่
 
 import { notFound } from 'next/navigation';
-import { decodeOrderId, findOrderByRowIndex } from '@/lib/google-sheets';
+import { decodeOrderId, findOrderByPhone } from '@/lib/google-sheets';
 import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 import VerifyClient from './VerifyClient';
 
@@ -15,7 +15,7 @@ export default async function VerifyPage({ params }: PageProps) {
   const decoded = decodeOrderId(token);
   if (!decoded) notFound();
 
-  const order = await findOrderByRowIndex(decoded.rowIndex);
+  const order = await findOrderByPhone(decoded.phone);
   if (!order) notFound();
 
   // Check distribution status
@@ -23,7 +23,7 @@ export default async function VerifyPage({ params }: PageProps) {
   const { data: distribution } = await supabase
     .from('distributions')
     .select('*, distributors(name)')
-    .eq('sheet_row_id', String(order.rowIndex))
+    .eq('phone', order.phone)
     .eq('cancelled', false)
     .single();
 
