@@ -194,7 +194,7 @@ export default function DistributePage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error); }
       else {
-        setSuccessMsg(`✅ แจกเสื้อให้ ${nm} สำเร็จ!`);
+        setSuccessMsg(`แจกเสื้อให้ ${nm} สำเร็จ!`);
         setResult(null); setPhone('');
         setSelectedOrder(null);
         loadStats();
@@ -411,7 +411,7 @@ export default function DistributePage() {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                           <FileImage size={16} />
-                          🧾 ดูสลิปการโอนเงิน / หลักฐานการชำระเงิน
+                          ดูสลิปการโอนเงิน / หลักฐานการชำระเงิน
                         </div>
                         {showSlip ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </button>
@@ -589,9 +589,9 @@ export default function DistributePage() {
               <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
                 {([
                   { key: 'all',         label: 'ทั้งหมด' },
-                  { key: 'pending',     label: '⏳ ยังไม่รับ' },
-                  { key: 'distributed', label: '✅ รับแล้ว' },
-                ] as const).map(({ key, label }) => (
+                  { key: 'pending',     label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> ยังไม่รับ</span> },
+                  { key: 'distributed', label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={14} /> รับแล้ว</span> },
+                ]).map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => { setAllFilter(key); loadAllOrders(key, allSearch); }}
@@ -656,7 +656,7 @@ export default function DistributePage() {
                       style={{ marginBottom: 'var(--space-3)', textDecoration: 'none', display: 'inline-flex', color: '#166534', borderColor: '#86efac', background: '#f0fdf4' }}
                     >
                       <FileImage size={14} />
-                      🧾 ดูสลิปการชำระเงิน
+                      ดูสลิปการชำระเงิน
                     </a>
                   ) : (
                     <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -721,7 +721,7 @@ export default function DistributePage() {
                               background: '#dcfce7', color: '#166534',
                               borderRadius: 4, padding: '1px 5px',
                               fontWeight: 700,
-                            }}>🧾 สลิป</span>
+                            }}><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><FileImage size={12} />สลิป</span></span>
                           )}
                         </div>
                         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', display: 'flex', gap: 'var(--space-3)' }}>
@@ -730,7 +730,7 @@ export default function DistributePage() {
                         </div>
                       </div>
                       <span className={`badge ${row.distribution ? 'badge-success' : 'badge-pending'}`} style={{ fontSize: '0.65rem', marginLeft: 'var(--space-3)', flexShrink: 0 }}>
-                        {row.distribution ? '✅' : '⏳'}
+                        {row.distribution ? <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} /> : <Clock size={16} style={{ color: 'var(--color-warning)' }} />}
                       </span>
                     </button>
                   ))}

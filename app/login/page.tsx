@@ -1,9 +1,11 @@
 'use client';
-// app/login/page.tsx
+// app/login/page.tsx — Phosphor Icons Duotone
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogIn, Eye, EyeOff, Package } from 'lucide-react';
+import {
+  SignIn, Eye, EyeSlash, TShirt, ArrowLeft, ShieldCheck,
+} from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -28,7 +30,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Redirect based on role
     const profileRes = await fetch('/api/profile');
     const profile = profileRes.ok ? await profileRes.json() : null;
     if (profile?.role === 'admin') {
@@ -46,29 +47,50 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 'var(--space-4)',
-      background: 'var(--color-background)',
+      position: 'relative',
     }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        {/* Logo */}
+      <div className="bg-ambient" aria-hidden="true" />
+
+      <div style={{ width: '100%', maxWidth: 400, position: 'relative' }}>
+
+        {/* Back link */}
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <a href="/" className="btn btn-ghost btn-sm" style={{ paddingLeft: 0 }}>
+            <ArrowLeft size={15} weight="bold" /> กลับหน้าหลัก
+          </a>
+        </div>
+
+        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
           <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 56, height: 56, background: 'var(--color-primary-light)',
-            borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-4)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 68, height: 68,
+            background: 'radial-gradient(circle at 30% 30%, var(--color-secondary), var(--color-primary))',
+            borderRadius: 'var(--radius-xl)',
+            marginBottom: 'var(--space-5)',
+            boxShadow: '0 0 40px var(--color-primary-glow), 0 0 80px var(--color-primary-light), inset 0 1px 0 oklch(1 0 0 / 0.20)',
           }}>
-            <Package size={28} color="var(--color-primary)" />
+            <ShieldCheck size={34} color="#fff" weight="duotone" />
           </div>
-          <h1 style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-2)' }}>เข้าสู่ระบบ</h1>
+          <h1 style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-2)', color: 'var(--color-foreground)' }}>
+            เข้าสู่ระบบ
+          </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>
             สำหรับผู้แจกเสื้อและแอดมินเท่านั้น
           </p>
         </div>
 
-        <div className="card">
+        {/* Form card */}
+        <div className="glass-card" style={{
+          padding: 'var(--space-6)',
+          boxShadow: '0 24px 64px oklch(0 0 0 / 0.50), 0 0 0 1px oklch(1 0 0 / 0.08)',
+        }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {error && (
               <div className="alert alert-error" role="alert" aria-live="polite">
-                <LogIn size={16} style={{ flexShrink: 0 }} />
+                <SignIn size={16} weight="duotone" style={{ flexShrink: 0 }} />
                 {error}
               </div>
             )}
@@ -76,8 +98,7 @@ export default function LoginPage() {
             <div className="input-group">
               <label htmlFor="email" className="input-label">อีเมล <span className="required">*</span></label>
               <input
-                id="email" type="email" className="input"
-                placeholder="your@email.com"
+                id="email" type="email" className="input" placeholder="your@email.com"
                 value={email} onChange={e => setEmail(e.target.value)}
                 autoComplete="email" required
               />
@@ -89,8 +110,7 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPass ? 'text' : 'password'}
-                  className="input"
-                  placeholder="••••••••"
+                  className="input" placeholder="••••••••"
                   value={password} onChange={e => setPassword(e.target.value)}
                   autoComplete="current-password" required
                   style={{ paddingRight: 'var(--space-10)' }}
@@ -106,26 +126,43 @@ export default function LoginPage() {
                   }}
                   aria-label={showPass ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                 >
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPass
+                    ? <EyeSlash size={17} weight="duotone" />
+                    : <Eye size={17} weight="duotone" />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
-              {loading ? <><span className="spinner" style={{ width: 18, height: 18 }} /> กำลังเข้าสู่ระบบ...</> : <><LogIn size={18} /> เข้าสู่ระบบ</>}
+            <button
+              type="submit" id="login-submit-btn"
+              className="btn btn-primary btn-full btn-lg"
+              disabled={loading}
+              style={{ marginTop: 'var(--space-2)' }}
+            >
+              {loading
+                ? <><span className="spinner" style={{ width: 18, height: 18 }} /> กำลังเข้าสู่ระบบ...</>
+                : <><SignIn size={18} weight="duotone" /> เข้าสู่ระบบ</>}
             </button>
           </form>
 
           <hr className="divider" />
           <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
             ยังไม่มีบัญชี?{' '}
-            <a href="/register" style={{ fontWeight: 600 }}>สมัครใช้งาน</a>
+            <a href="/register" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+              สมัครใช้งาน
+            </a>
           </p>
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: 'var(--space-4)', fontSize: 'var(--text-sm)' }}>
-          <a href="/" style={{ color: 'var(--color-text-muted)' }}>← กลับหน้าค้นหา</a>
-        </p>
+        {/* Footer brand */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 'var(--space-2)', marginTop: 'var(--space-6)',
+          color: 'var(--color-text-light)', fontSize: 'var(--text-xs)',
+        }}>
+          <TShirt size={13} weight="duotone" />
+          SCI Shirt 2569 — มรภ.ภูเก็ต
+        </div>
       </div>
     </div>
   );
