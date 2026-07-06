@@ -103,12 +103,12 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
           : 'linear-gradient(90deg, oklch(0.68 0.24 335), var(--color-primary))',
       }} />
 
-      <div style={{ padding: 'var(--space-8) var(--space-6) var(--space-6) var(--space-6)' }}>
+      <div style={{ padding: 'var(--space-5) var(--space-5)' }}>
         
         {/* Header Section */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-6)',
+          flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-4)',
         }}>
           <div>
             <div style={{
@@ -141,9 +141,9 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
         {/* Data Grid Section */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-8)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 'var(--space-2)',
+          marginBottom: 'var(--space-5)',
         }}>
           {[
             { icon: Hash,  label: 'ลำดับที่', value: `#${order.displayId || order.rowIndex}`, color: 'oklch(0.60 0.25 293)' },
@@ -152,24 +152,24 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
             { icon: User,  label: 'จำนวน',    value: `${order.quantity} ตัว`, color: 'oklch(0.68 0.24 335)' },
           ].map(({ icon: Icon, label, value, color }) => (
             <div key={label} style={{
-              padding: 'var(--space-4)',
+              padding: 'var(--space-3)',
               background: 'var(--color-surface-2)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--color-border)',
-              display: 'flex', flexDirection: 'column', gap: 'var(--space-2)'
+              display: 'flex', flexDirection: 'column', gap: '4px'
             }}>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+                display: 'flex', alignItems: 'center', gap: 'var(--space-1)',
                 color: 'var(--color-text-muted)',
                 fontSize: '11px', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.06em',
+                textTransform: 'uppercase', letterSpacing: '0.04em',
               }}>
                 <Icon size={14} weight="duotone" style={{ color }} />
                 {label}
               </div>
               <div style={{
                 fontFamily: 'var(--font-heading)', fontWeight: 700,
-                color: 'var(--color-foreground)', fontSize: 'var(--text-lg)',
+                color: 'var(--color-foreground)', fontSize: 'var(--text-base)',
                 letterSpacing: '-0.01em',
               }}>
                 {value}
@@ -180,14 +180,14 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
 
         {/* Distribution Alert */}
         {isDistributed && distributorName && (
-          <div className="alert alert-success" style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)' }}>
+          <div className="alert alert-success" style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)' }}>
             <CheckCircle size={18} weight="duotone" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
-              <div style={{ fontWeight: 600, color: 'var(--color-foreground)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--color-foreground)', fontSize: 'var(--text-sm)' }}>
                 รับเสื้อแล้วโดย {distributorName}
               </div>
               {distribution?.distributed_at && (
-                <div style={{ fontSize: 'var(--text-xs)', marginTop: '4px', opacity: 0.85, fontWeight: 500 }}>
+                <div style={{ fontSize: '11px', marginTop: '2px', opacity: 0.85, fontWeight: 500 }}>
                   {new Date(distribution.distributed_at as string).toLocaleString('th-TH')}
                 </div>
               )}
@@ -196,31 +196,31 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
         )}
 
         {/* QR Code Divider & Section */}
-        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-6)' }}>
+        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-            marginBottom: 'var(--space-5)',
+            marginBottom: 'var(--space-4)',
             color: 'var(--color-foreground)', fontWeight: 600, fontSize: 'var(--text-sm)',
           }}>
-            <QrCode size={20} weight="duotone" style={{ color: statusColor }} />
+            <QrCode size={18} weight="duotone" style={{ color: statusColor }} />
             QR Code สำหรับรับเสื้อ
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-5)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-3)' }}>
             {qrLoading ? (
-              <div className="skeleton" style={{ width: 260, height: 260, borderRadius: 'var(--radius-lg)' }} />
+              <div className="skeleton" style={{ width: 180, height: 180, borderRadius: 'var(--radius-lg)' }} />
             ) : qrDataUrl ? (
               <div style={{
-                padding: 'var(--space-3)', background: '#fff',
-                borderRadius: 'var(--radius-xl)',
-                boxShadow: '0 8px 32px oklch(0 0 0 / 0.40)',
+                padding: 'var(--space-2)', background: '#fff',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: '0 8px 24px oklch(0 0 0 / 0.30)',
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={qrDataUrl}
                   alt={`QR Code สำหรับ ${order.name}`}
-                  width={260} height={260}
-                  style={{ display: 'block', borderRadius: '8px' }}
+                  width={180} height={180}
+                  style={{ display: 'block', borderRadius: '6px' }}
                 />
               </div>
             ) : (
@@ -230,15 +230,15 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
             )}
 
             <p style={{
-              fontSize: '13px', color: 'var(--color-text-muted)',
-              textAlign: 'center', maxWidth: 280, lineHeight: 1.5,
+              fontSize: '12px', color: 'var(--color-text-muted)',
+              textAlign: 'center', maxWidth: 280, lineHeight: 1.4,
               fontWeight: 500
             }}>
               แสดง QR Code นี้ให้ผู้แจกเสื้อ หรือบันทึกไว้ในโทรศัพท์
             </p>
 
             {qrDataUrl && (
-              <div data-html2canvas-ignore="true" style={{ width: '100%', marginTop: 'var(--space-2)' }}>
+              <div data-html2canvas-ignore="true" style={{ width: '100%', marginTop: 'var(--space-1)' }}>
                 <button 
                   ref={downloadBtnRef}
                   onClick={handleDownloadQr} 

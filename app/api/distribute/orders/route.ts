@@ -41,7 +41,8 @@ export async function GET(req: NextRequest) {
     distribution: distMap.get(order.phone) ?? null,
   }));
 
-  const distributedCount = enriched.filter(o => o.distribution !== null).length;
+  const distributedCount = enriched.reduce((sum, o) => o.distribution !== null ? sum + (o.quantity || 1) : sum, 0);
+  const totalCount = orders.reduce((sum, o) => sum + (o.quantity || 1), 0);
 
   // Filter by status
   if (filter === 'distributed') {
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     orders: enriched,
-    total: orders.length,
+    total: totalCount,
     distributed: distributedCount,
   });
 }

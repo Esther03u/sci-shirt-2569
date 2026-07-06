@@ -33,8 +33,8 @@ export async function GET() {
   }));
 
   // Stats
-  const total = orders.length;
-  const distributed = enriched.filter(o => o.distribution).length;
+  const total = orders.reduce((sum, order) => sum + (order.quantity || 1), 0);
+  const distributed = enriched.reduce((sum, order) => order.distribution ? sum + (order.quantity || 1) : sum, 0);
 
   // Per-distributor stats
   const distributorStats: Record<string, { name: string; count: number; lastAt: string }> = {};
@@ -44,7 +44,7 @@ export async function GET() {
       const id = d.distributed_by || 'unknown';
       const name = d.distributors?.name ?? 'ไม่ทราบ';
       if (!distributorStats[id]) distributorStats[id] = { name, count: 0, lastAt: '' };
-      distributorStats[id].count++;
+      distributorStats[id].count += (o.quantity || 1);
       if (!distributorStats[id].lastAt || d.distributed_at > distributorStats[id].lastAt) {
         distributorStats[id].lastAt = d.distributed_at;
       }
