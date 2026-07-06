@@ -152,8 +152,19 @@ export default function DistributePage() {
     setScanning(false);
   }
 
-  async function handleQrScan(token: string) {
+  async function handleQrScan(scannedText: string) {
     setLoading(true); setError(''); setResult(null); setSuccessMsg('');
+    
+    // Extract token if the scanned text is a full URL (e.g. from OrderCard QR)
+    let token = scannedText;
+    try {
+      if (scannedText.startsWith('http')) {
+        const url = new URL(scannedText);
+        const parts = url.pathname.split('/').filter(Boolean);
+        token = parts[parts.length - 1] || scannedText;
+      }
+    } catch {}
+
     try {
       const res = await fetch(`/api/checkin/${encodeURIComponent(token)}`);
       const data = await res.json();
