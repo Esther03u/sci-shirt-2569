@@ -588,9 +588,9 @@ export default function DistributePage() {
               {/* Filter */}
               <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
                 {([
-                  { key: 'all',         label: 'ทั้งหมด' },
-                  { key: 'pending',     label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> ยังไม่รับ</span> },
-                  { key: 'distributed', label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={14} /> รับแล้ว</span> },
+                  { key: 'all' as const,         label: 'ทั้งหมด' },
+                  { key: 'pending' as const,     label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={14} /> ยังไม่รับ</span> },
+                  { key: 'distributed' as const, label: <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={14} /> รับแล้ว</span> },
                 ]).map(({ key, label }) => (
                   <button
                     key={key}
