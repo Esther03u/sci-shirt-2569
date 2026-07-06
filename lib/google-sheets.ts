@@ -170,7 +170,8 @@ function convertDriveUrl(url: string): string {
   return url;
 }
 
-function normalizePhone(phone: string): string {
+function normalizePhone(phone: string | undefined): string {
+  if (!phone) return '';
   // If cell has multiple numbers (e.g. '062-661-9483 / 089-xxx' or '083-xxx และ 080-xxx'), take only the first
   const first = phone.split(/\s*[\/และ]\s*/)[0].trim();
   return first.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
@@ -195,6 +196,7 @@ export function getOrderId(order: ShirtOrder): string {
 export function decodeOrderId(token: string): { rowIndex: number; phone: string } | null {
   try {
     const decoded = Buffer.from(token, 'base64url').toString();
+    if (!decoded.includes(':')) return null;
     const [rowIdx, phone] = decoded.split(':');
     return { rowIndex: parseInt(rowIdx), phone };
   } catch {
