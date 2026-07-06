@@ -1,4 +1,5 @@
 // app/api/admin/orders/route.ts — Full order list for admin dashboard
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { fetchSheetData } from '@/lib/google-sheets';
 import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';

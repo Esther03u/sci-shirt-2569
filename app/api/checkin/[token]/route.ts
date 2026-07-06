@@ -1,4 +1,5 @@
 // app/api/checkin/[token]/route.ts — QR token lookup + distribute action
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeOrderId, findOrderByPhone } from '@/lib/google-sheets';
 import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';

@@ -1,4 +1,5 @@
 // app/api/search/route.ts
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { findOrderByPhone } from '@/lib/google-sheets';
 import { createAdminSupabase } from '@/lib/supabase-server';

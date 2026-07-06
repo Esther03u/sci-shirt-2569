@@ -1,4 +1,5 @@
 // app/api/distribute/stats/route.ts — Stats for logged-in distributor
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createAdminSupabase, getSession } from '@/lib/supabase-server';
 
