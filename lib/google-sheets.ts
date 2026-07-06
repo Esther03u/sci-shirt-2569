@@ -164,9 +164,26 @@ function normalizePhone(phone: string | undefined): string {
 }
 
 export async function findOrderByPhone(phone: string, forceRefresh = false): Promise<ShirtOrder | null> {
-  const normalized = normalizePhone(phone);
+  const normalized = normalizePhone(phone).split(',')[0];
   const orders = await fetchSheetData(forceRefresh);
-  return orders.find(o => normalizePhone(o.phone) === normalized) ?? null;
+  return orders.find(o => {
+    // Check against normalized o.phone (which might contain commas)
+    if (o.phone.split(',').includes(normalized)) return true;
+
+    // Check against raw row fields to catch any other numbers separated by slash or space
+    const rawPhone = String(
+      o['เบอร์โทรศัพท์ติดต่อ'] || o['เบอร์โทรศัพท์'] || o['Phone'] || o['phone'] || o['เบอร์โทร'] || o['โทรศัพท์'] || ''
+    );
+    
+    const parts = rawPhone.split(/[^0-9\-]+/);
+    for (const p of parts) {
+      if (p.length >= 8) {
+        const clean = p.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
+        if (clean === normalized) return true;
+      }
+    }
+    return false;
+  }) ?? null;
 }
 
 export async function findOrderByRowIndex(rowIndex: number, forceRefresh = false): Promise<ShirtOrder | null> {

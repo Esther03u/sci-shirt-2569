@@ -30,16 +30,26 @@ export async function GET(req: NextRequest) {
     (distributions ?? []).map(d => [d.phone, d])
   );
 
-  let enriched = orders.map(order => ({
-    rowIndex: order.rowIndex,
-    displayId: order.displayId,
-    name: order.name,
-    phone: order.phone,
-    size: order.size,
-    quantity: order.quantity,
-    slipUrl: order.slipUrl ?? null,
-    distribution: distMap.get(order.phone) ?? null,
-  }));
+  let enriched = orders.map(order => {
+    const rawPhoneCell = String(
+      order['เบอร์โทรศัพท์ติดต่อ'] || order['เบอร์โทรศัพท์'] || order['Phone'] || order['phone'] || order['เบอร์โทร'] || order['โทรศัพท์'] || ''
+    );
+    const allPhones = (rawPhoneCell.match(/[\d\-\s\(\)]{8,}/g) || [])
+      .map(p => p.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0'));
+    const searchPhones = [...order.phone.split(','), ...allPhones].join(',');
+
+    return {
+      rowIndex: order.rowIndex,
+      displayId: order.displayId,
+      name: order.name,
+      phone: order.phone,
+      searchPhones,
+      size: order.size,
+      quantity: order.quantity,
+      slipUrl: order.slipUrl ?? null,
+      distribution: distMap.get(order.phone) ?? null,
+    };
+  });
 
   const distributedCount = enriched.reduce((sum, o) => o.distribution !== null ? sum + (o.quantity || 1) : sum, 0);
   const totalCount = orders.reduce((sum, o) => sum + (o.quantity || 1), 0);
@@ -55,7 +65,7 @@ export async function GET(req: NextRequest) {
   if (search) {
     enriched = enriched.filter(o =>
       o.name.toLowerCase().includes(search) ||
-      o.phone.includes(search)
+      o.searchPhones.includes(search)
     );
   }
 
