@@ -24,7 +24,7 @@ export async function GET(
   const supabase = await createAdminSupabase();
   const { data: dist } = await supabase
     .from('distributions')
-    .select('*, distributors(name)')
+    .select('*, distributors!distributions_distributed_by_fkey(name)')
     .eq('phone', order.phone)
     .eq('cancelled', false)
     .single();

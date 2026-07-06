@@ -99,7 +99,7 @@ export default function VerifyClient({ order, distribution, canDistribute, isAdm
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
             {[
-              { icon: Hash,   label: 'ลำดับที่', value: `#${order.rowIndex}` },
+              { icon: Hash,   label: 'ลำดับที่', value: `#${order.displayId || order.rowIndex}` },
               { icon: Phone,  label: 'เบอร์โทร',  value: order.phone },
               { icon: Ruler,  label: 'ไซส์',      value: order.size || '-' },
               { icon: Package, label: 'จำนวน',   value: `${order.quantity} ตัว` },

@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   const { data: distributions } = await supabase
     .from('distributions')
-    .select('sheet_row_id, phone, distributed_at, distributors(name)')
+    .select('sheet_row_id, phone, distributed_at, distributors!distributions_distributed_by_fkey(name)')
     .eq('cancelled', false);
 
   const distMap = new Map(

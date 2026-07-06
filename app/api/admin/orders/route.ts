@@ -20,7 +20,7 @@ export async function GET() {
 
   const { data: distributions } = await supabase
     .from('distributions')
-    .select('*, distributors(name)')
+    .select('*, distributors!distributions_distributed_by_fkey(name)')
     .eq('cancelled', false);
 
   const distMap = new Map(

@@ -22,7 +22,7 @@ export default async function VerifyPage({ params }: PageProps) {
   const supabase = await createAdminSupabase();
   const { data: distribution } = await supabase
     .from('distributions')
-    .select('*, distributors(name)')
+    .select('*, distributors!distributions_distributed_by_fkey(name)')
     .eq('phone', order.phone)
     .eq('cancelled', false)
     .single();

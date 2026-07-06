@@ -18,7 +18,7 @@ export interface ShirtOrder {
   [key: string]: string | number | undefined;
 }
 
-export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]> {
+export async function fetchSheetData(forceRefresh = true): Promise<ShirtOrder[]> {
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
   const gidsToTry = ['1257582283', '0', '1', '2', ''];
@@ -164,14 +164,14 @@ function normalizePhone(phone: string | undefined): string {
   return first.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
 }
 
-export async function findOrderByPhone(phone: string): Promise<ShirtOrder | null> {
+export async function findOrderByPhone(phone: string, forceRefresh = true): Promise<ShirtOrder | null> {
   const normalized = normalizePhone(phone);
-  const orders = await fetchSheetData();
+  const orders = await fetchSheetData(forceRefresh);
   return orders.find(o => normalizePhone(o.phone) === normalized) ?? null;
 }
 
-export async function findOrderByRowIndex(rowIndex: number): Promise<ShirtOrder | null> {
-  const orders = await fetchSheetData();
+export async function findOrderByRowIndex(rowIndex: number, forceRefresh = true): Promise<ShirtOrder | null> {
+  const orders = await fetchSheetData(forceRefresh);
   return orders.find(o => o.rowIndex === rowIndex) ?? null;
 }
 

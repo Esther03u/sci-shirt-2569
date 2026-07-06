@@ -63,7 +63,7 @@ export function SearchTab({
 
           <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
             {[
-              { label: 'ลำดับ', value: `#${result.order.rowIndex}` },
+              { label: 'ลำดับ', value: `#${result.order.displayId || result.order.rowIndex}` },
               { label: 'ไซส์',  value: result.order.size as string || '-' },
               { label: 'จำนวน', value: `${result.order.quantity} ตัว` },
             ].map(({ label, value }) => (
