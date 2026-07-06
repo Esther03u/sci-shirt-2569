@@ -303,10 +303,12 @@ export function AllOrdersTab({
       </div>
 
       {selectedOrder && (
-        <div className="card" style={{
-          borderTop: `4px solid ${selectedOrder.distribution ? 'var(--color-success)' : 'var(--color-accent)'}`,
-          marginBottom: 'var(--space-4)',
-        }}>
+        <div className="dialog-backdrop" onClick={() => setSelectedOrder(null)} style={{ zIndex: 100 }}>
+          <div className="dialog" onClick={e => e.stopPropagation()} style={{
+            borderTop: `4px solid ${selectedOrder.distribution ? 'var(--color-success)' : 'var(--color-accent)'}`,
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
           <div className="card-header">
             <div>
               <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)', fontFamily: 'var(--font-heading)' }}>
@@ -378,6 +380,7 @@ export function AllOrdersTab({
               }
             </button>
           )}
+          </div>
         </div>
       )}
 
