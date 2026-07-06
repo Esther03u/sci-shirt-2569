@@ -18,7 +18,7 @@ export interface ShirtOrder {
   [key: string]: string | number | undefined;
 }
 
-export async function fetchSheetData(forceRefresh = true): Promise<ShirtOrder[]> {
+export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]> {
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
   const gidsToTry = ['1257582283', '0', '1', '2', ''];
@@ -31,7 +31,7 @@ export async function fetchSheetData(forceRefresh = true): Promise<ShirtOrder[]>
 
       // Use Next.js fetch caching instead of in-memory cache
       const res = await fetch(csvUrl, {
-        next: { revalidate: forceRefresh ? 0 : 300 }
+        next: { revalidate: forceRefresh ? 0 : 60 }
       });
 
       if (!res.ok) {
@@ -116,7 +116,7 @@ function parseCsv(csv: string): ShirtOrder[] {
 
 function parseRow(line: string): string[] {
   const result: string[] = [];
-  let current = '';
+  let start = 0;
   let inQuote = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -124,13 +124,12 @@ function parseRow(line: string): string[] {
     if (ch === '"') {
       inQuote = !inQuote;
     } else if (ch === ',' && !inQuote) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += ch;
+      // Use substring instead of character-by-character concatenation for performance
+      result.push(line.substring(start, i).trim());
+      start = i + 1;
     }
   }
-  result.push(current.trim());
+  result.push(line.substring(start).trim());
   return result;
 }
 
@@ -164,13 +163,13 @@ function normalizePhone(phone: string | undefined): string {
   return first.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
 }
 
-export async function findOrderByPhone(phone: string, forceRefresh = true): Promise<ShirtOrder | null> {
+export async function findOrderByPhone(phone: string, forceRefresh = false): Promise<ShirtOrder | null> {
   const normalized = normalizePhone(phone);
   const orders = await fetchSheetData(forceRefresh);
   return orders.find(o => normalizePhone(o.phone) === normalized) ?? null;
 }
 
-export async function findOrderByRowIndex(rowIndex: number, forceRefresh = true): Promise<ShirtOrder | null> {
+export async function findOrderByRowIndex(rowIndex: number, forceRefresh = false): Promise<ShirtOrder | null> {
   const orders = await fetchSheetData(forceRefresh);
   return orders.find(o => o.rowIndex === rowIndex) ?? null;
 }
