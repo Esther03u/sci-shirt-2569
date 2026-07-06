@@ -28,7 +28,14 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/distribute');
+    // Redirect based on role
+    const profileRes = await fetch('/api/profile');
+    const profile = profileRes.ok ? await profileRes.json() : null;
+    if (profile?.role === 'admin') {
+      router.push('/dashboard');
+    } else {
+      router.push('/distribute');
+    }
     router.refresh();
   }
 

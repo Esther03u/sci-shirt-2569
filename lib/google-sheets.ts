@@ -13,6 +13,7 @@ export interface ShirtOrder {
   quantity: number;
   color?: string;
   note?: string;
+  slipUrl?: string;
   [key: string]: string | number | undefined;
 }
 
@@ -26,23 +27,54 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
     return cache.data;
   }
 
-  try {
-    // Use public CSV export (works if sheet is "Anyone with link can view")
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
-    const res = await fetch(csvUrl, { next: { revalidate: 300 } });
-    
-    if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
-    
-    const csv = await res.text();
-    const orders = parseCsv(csv);
-    
-    cache = { data: orders, fetchedAt: now };
-    return orders;
-  } catch (err) {
-    console.error('Failed to fetch sheet data:', err);
-    if (cache) return cache.data; // Return stale cache on error
-    return [];
+  // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
+  // Also try without gid (exports first sheet by default)
+  const gidsToTry = ['0', '1', '2', ''];
+  let lastError: unknown;
+
+  for (const gid of gidsToTry) {
+    try {
+      const gidParam = gid ? `&gid=${gid}` : '';
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv${gidParam}`;
+      console.log(`[sheets] Trying CSV URL: ${csvUrl}`);
+
+      const res = await fetch(csvUrl, { cache: 'no-store' });
+
+      if (!res.ok) {
+        console.warn(`[sheets] gid=${gid} failed with status ${res.status}`);
+        continue;
+      }
+
+      const csv = await res.text();
+      // Sanity check: must have at least 2 lines (header + 1 row)
+      const lines = csv.split('\n').filter(l => l.trim());
+      if (lines.length < 2) {
+        console.warn(`[sheets] gid=${gid} returned empty/header-only CSV (${lines.length} lines)`);
+        continue;
+      }
+
+      const orders = parseCsv(csv);
+      if (orders.length === 0) {
+        console.warn(`[sheets] gid=${gid} parsed 0 orders (phone column not found?)`);
+        console.log(`[sheets] Headers found: ${lines[0].substring(0, 200)}`);
+        // Still cache this result — better than nothing
+      }
+
+      console.log(`[sheets] Success with gid=${gid}: ${orders.length} orders`);
+      cache = { data: orders, fetchedAt: now };
+      return orders;
+    } catch (err) {
+      lastError = err;
+      console.warn(`[sheets] Error trying gid=${gid}:`, err);
+    }
   }
+
+  console.error('[sheets] All gid attempts failed. Last error:', lastError);
+  if (cache) {
+    console.warn('[sheets] Returning stale cache as fallback');
+    return cache.data;
+  }
+  return [];
 }
 
 function parseCsv(csv: string): ShirtOrder[] {
@@ -66,14 +98,24 @@ function parseCsv(csv: string): ShirtOrder[] {
       rowIndex: i,
       timestamp: row['Timestamp'] || row['เวลา'] || row['timestamp'] || '',
       phone: normalizePhone(
-        row['เบอร์โทรศัพท์'] || row['Phone'] || row['phone'] || 
+        row['เบอร์โทรศัพท์ติดต่อ'] || row['เบอร์โทรศัพท์'] || row['Phone'] || row['phone'] || 
         row['เบอร์โทร'] || row['โทรศัพท์'] || ''
       ),
       name: row['ชื่อ-นามสกุล'] || row['ชื่อ'] || row['Name'] || row['name'] || '',
-      size: row['ไซส์'] || row['ขนาด'] || row['Size'] || row['size'] || '',
-      quantity: parseInt(row['จำนวน'] || row['Quantity'] || '1') || 1,
+      size: row['เลือกไซส์เสื้อ (ดูรายละเอียดขนาดในตาราง)'] || row['ไซส์'] || row['ขนาด'] || row['Size'] || row['size'] || '',
+      quantity: parseInt(row['จำนวนที่สั่งซื้อ (ตัว)'] || row['จำนวน'] || row['Quantity'] || '1') || 1,
       color: row['สี'] || row['Color'] || '',
-      note: row['หมายเหตุ'] || row['Note'] || '',
+      note: row['หมายเหตุเพิ่มเติม (ถ้ามี)'] || row['หมายเหตุ'] || row['Note'] || '',
+      slipUrl: convertDriveUrl(
+        row['แนบสลิปการโอนเงิน (หลักฐานการชำระเงิน)'] ||
+        row['หลักฐานการชำระเงิน'] ||
+        row['แนบสลิป'] ||
+        row['สลิป'] ||
+        row['Slip'] ||
+        row['slip'] ||
+        row['payment_slip'] ||
+        ''
+      ),
     };
 
     // Attach raw row data
@@ -105,8 +147,33 @@ function parseRow(line: string): string[] {
   return result;
 }
 
+/**
+ * Converts any Google Drive URL to a direct-view URL.
+ * Handles: open?id=..., /file/d/.../view, /d/.../view formats
+ */
+function convertDriveUrl(url: string): string {
+  if (!url) return '';
+  url = url.trim();
+
+  // Already a direct open URL
+  if (url.startsWith('https://drive.google.com/open?id=')) return url;
+
+  // /file/d/<id>/view or /file/d/<id>/edit → open?id=<id>
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch) return `https://drive.google.com/open?id=${fileMatch[1]}`;
+
+  // open?id= embedded in longer URL
+  const openMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (openMatch) return `https://drive.google.com/open?id=${openMatch[1]}`;
+
+  // Return as-is if we can't parse it
+  return url;
+}
+
 function normalizePhone(phone: string): string {
-  return phone.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
+  // If cell has multiple numbers (e.g. '062-661-9483 / 089-xxx' or '083-xxx และ 080-xxx'), take only the first
+  const first = phone.split(/\s*[\/และ]\s*/)[0].trim();
+  return first.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
 }
 
 export async function findOrderByPhone(phone: string): Promise<ShirtOrder | null> {
