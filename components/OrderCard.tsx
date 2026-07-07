@@ -142,11 +142,18 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
               {order.name as string || 'ไม่ระบุชื่อ'}
             </h2>
           </div>
-          <span className={`badge ${isDistributed ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
-            {isDistributed
-              ? <><CheckCircle size={14} weight="fill" /> รับเสื้อแล้ว</>
-              : <><Clock size={14} weight="fill" /> ยังไม่ได้รับ</>}
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', alignItems: 'flex-end' }}>
+            <span className={`badge ${(order.slipUrl || order.supabaseSlipUrl) ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
+              {(order.slipUrl || order.supabaseSlipUrl)
+                ? <><CheckCircle size={14} weight="fill" /> ชำระเงินแล้ว</>
+                : <><Clock size={14} weight="fill" /> รอแอดมินตรวจสอบ</>}
+            </span>
+            <span className={`badge ${isDistributed ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
+              {isDistributed
+                ? <><CheckCircle size={14} weight="fill" /> รับเสื้อแล้ว</>
+                : <><Clock size={14} weight="fill" /> ยังไม่ได้รับ</>}
+            </span>
+          </div>
         </div>
 
         {/* Data Grid Section */}
