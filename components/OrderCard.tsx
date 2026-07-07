@@ -142,18 +142,11 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
               {order.name as string || 'ไม่ระบุชื่อ'}
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', alignItems: 'flex-end' }}>
-            <span className={`badge ${(order.slipUrl || order.supabaseSlipUrl) ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
-              {(order.slipUrl || order.supabaseSlipUrl)
-                ? <><CheckCircle size={14} weight="fill" /> ชำระเงินแล้ว</>
-                : <><Clock size={14} weight="fill" /> รอแอดมินตรวจสอบ</>}
-            </span>
-            <span className={`badge ${isDistributed ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
-              {isDistributed
-                ? <><CheckCircle size={14} weight="fill" /> รับเสื้อแล้ว</>
-                : <><Clock size={14} weight="fill" /> ยังไม่ได้รับ</>}
-            </span>
-          </div>
+          <span className={`badge ${isDistributed ? 'badge-success' : 'badge-warning'}`} style={{ padding: '0.4rem 0.75rem', fontSize: 'var(--text-xs)' }}>
+            {isDistributed
+              ? <><CheckCircle size={14} weight="fill" /> รับเสื้อแล้ว</>
+              : <><Clock size={14} weight="fill" /> ยังไม่ได้รับ</>}
+          </span>
         </div>
 
         {/* Data Grid Section */}
@@ -168,7 +161,8 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
             { icon: Phone, label: 'เบอร์โทร',  value: order.phone as string, color: 'oklch(0.70 0.12 155)' },
             { icon: Ruler, label: 'ไซส์',      value: order.size as string || '-', color: 'oklch(0.75 0.15 70)' },
             { icon: User,  label: 'จำนวน',    value: `${order.quantity} ตัว`, color: 'oklch(0.68 0.24 335)' },
-            { icon: CurrencyCircleDollar, label: 'ยอดรวม', value: `${calculatePrice(order.size as string, order.quantity as string)} ฿`, color: 'oklch(0.65 0.15 110)', fullWidth: true },
+            { icon: CurrencyCircleDollar, label: 'ยอดรวม', value: `${calculatePrice(order.size as string, order.quantity as string)} ฿`, color: 'oklch(0.65 0.15 110)' },
+            { icon: (order.slipUrl || order.supabaseSlipUrl) ? CheckCircle : Clock, label: 'สถานะชำระเงิน', value: (order.slipUrl || order.supabaseSlipUrl) ? 'ชำระเงินแล้ว' : 'รอตรวจสอบ', color: (order.slipUrl || order.supabaseSlipUrl) ? 'oklch(0.64 0.18 162)' : 'oklch(0.75 0.14 85)' },
           ].map(({ icon: Icon, label, value, color, fullWidth }) => (
             <div key={label} style={{
               gridColumn: fullWidth ? '1 / -1' : undefined,
