@@ -1,6 +1,6 @@
-// app/api/distribute/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { DistributePostSchema, DistributeDeleteSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -9,10 +9,14 @@ export async function POST(req: NextRequest) {
   const profile = await getDistributorProfile(session.user.id);
   if (!profile) return NextResponse.json({ error: 'ไม่พบข้อมูลผู้แจก' }, { status: 403 });
 
-  const { sheetRowId, phone } = await req.json();
-  if (!sheetRowId) return NextResponse.json({ error: 'ข้อมูลไม่ครบ' }, { status: 400 });
+  const body = await req.json();
+  const validation = DistributePostSchema.safeParse(body);
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+  }
+  const { sheetRowId, phone } = validation.data;
 
-  const supabase = await createAdminSupabase();
+  const supabase = await createServerSupabase();
 
   // Check if already distributed
   const { data: existing } = await supabase
@@ -53,8 +57,13 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'เฉพาะ Admin เท่านั้น' }, { status: 403 });
   }
 
-  const { distributionId } = await req.json();
-  const supabase = await createAdminSupabase();
+  const body = await req.json();
+  const validation = DistributeDeleteSchema.safeParse(body);
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+  }
+  const { distributionId } = validation.data;
+  const supabase = await createServerSupabase();
 
   const { error } = await supabase
     .from('distributions')

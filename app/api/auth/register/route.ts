@@ -1,13 +1,23 @@
-// app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabase } from '@/lib/supabase-server';
+import { RegisterSchema } from '@/lib/validations';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  const { name, email, password, registrationCode } = await req.json();
-
-  if (!name || !email || !password || !registrationCode) {
-    return NextResponse.json({ error: 'กรุณากรอกข้อมูลให้ครบ' }, { status: 400 });
+  const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const { success: rateLimitSuccess } = rateLimit(ip, 5, 15 * 60 * 1000); // 5 attempts per 15 mins
+  if (!rateLimitSuccess) {
+    return NextResponse.json({ error: 'คุณทำรายการบ่อยเกินไป กรุณารอสักครู่' }, { status: 429 });
   }
+
+  const body = await req.json();
+  const validation = RegisterSchema.safeParse(body);
+  
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+  }
+
+  const { name, email, password, registrationCode } = validation.data;
 
   const supabase = await createAdminSupabase();
 

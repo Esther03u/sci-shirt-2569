@@ -15,6 +15,7 @@ export interface ShirtOrder {
   color?: string;
   note?: string;
   slipUrl?: string;
+  branch?: string;
   [key: string]: string | number | undefined;
 }
 
@@ -103,6 +104,7 @@ function parseCsv(csv: string): ShirtOrder[] {
         row['payment_slip'] ||
         ''
       ),
+      branch: row['สาขา/ภาควิชา'] || row['สาขา'] || row['สาขาวิชา'] || row['Branch'] || row['branch'] || row['Major'] || row['major'] || '',
     };
 
     // Attach raw row data

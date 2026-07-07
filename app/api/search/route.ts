@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { findOrderByPhone } from '@/lib/google-sheets';
-import { createAdminSupabase } from '@/lib/supabase-server';
+import { createServerSupabase } from '@/lib/supabase-server';
 
 export async function GET(req: NextRequest) {
   const phone = req.nextUrl.searchParams.get('phone')?.trim();
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Check distribution status from Supabase
-    const supabase = await createAdminSupabase();
+    const supabase = await createServerSupabase();
     const { data: dist } = await supabase
       .from('distributions')
       .select('*, distributors!distributions_distributed_by_fkey(name)')

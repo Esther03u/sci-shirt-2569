@@ -10,13 +10,14 @@ import {
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-import { DashTab, Filter, Order, Stats, DistStat } from './types';
+import { DashTab, Filter, Order, Stats, DistStat, Distributor } from './types';
 import { OverviewTab, OrdersTab, DistributorsTab, SettingsTab } from './Tabs';
+import AdminLayout from '@/components/AdminLayout';
 
-const TABS: { key: DashTab; label: (stats: Stats, distStats: DistStat[]) => string; icon: React.ElementType }[] = [
+const TABS: { key: DashTab; label: (stats: Stats, distStats: DistStat[], distributors: Distributor[]) => string; icon: any }[] = [
   { key: 'overview',     label: () => 'ภาพรวม',              icon: ChartBar },
   { key: 'orders',       label: (stats) => `รายการ (${stats.total})`, icon: Package },
-  { key: 'distributors', label: (stats, distStats) => `ผู้แจก (${distStats.length})`, icon: Users },
+  { key: 'distributors', label: (stats, distStats, distributors) => `ผู้แจก (${distributors.length})`, icon: Users },
   { key: 'settings',     label: () => 'ตั้งค่า',              icon: Gear },
 ];
 
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, distributed: 0, remaining: 0 });
   const [distStats, setDistStats] = useState<DistStat[]>([]);
+  const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
@@ -42,7 +44,7 @@ export default function DashboardPage() {
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
   const [announcementOk, setAnnouncementOk] = useState(false);
 
-  const loadData = useCallback(async (isRefresh = false) => {
+  const loadData = useCallback(async (isRefresh = false, isAutoRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await fetch('/api/admin/orders');
@@ -52,11 +54,14 @@ export default function DashboardPage() {
       setOrders(data.orders ?? []);
       setStats(data.stats ?? { total: 0, distributed: 0, remaining: 0 });
       setDistStats(data.distributorStats ?? []);
+      setDistributors(data.distributors ?? []);
       
-      const annRes = await fetch('/api/announcement');
-      if (annRes.ok) {
-        const annData = await annRes.json();
-        setAnnouncementText(annData.announcement || '');
+      if (!isAutoRefresh) {
+        const annRes = await fetch('/api/announcement');
+        if (annRes.ok) {
+          const annData = await annRes.json();
+          setAnnouncementText(annData.announcement || '');
+        }
       }
     } catch { setError('โหลดข้อมูลล้มเหลว'); }
     finally { setLoading(false); setRefreshing(false); }
@@ -67,7 +72,7 @@ export default function DashboardPage() {
       if (!user) { router.push('/login'); return; }
       loadData();
     });
-    const interval = setInterval(() => loadData(true), 30_000);
+    const interval = setInterval(() => loadData(true, true), 30_000);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -124,6 +129,24 @@ export default function DashboardPage() {
     return { sizeBreakdown: breakdown, maxSizeCount: maxCount };
   }, [orders]);
 
+  const { branchBreakdown, maxBranchCount } = useMemo(() => {
+    const branchMap: Record<string, { total: number; distributed: number; remaining: number }> = {};
+    orders.forEach(o => {
+      const b = (o.branch || 'ไม่ระบุ').trim();
+      if (!branchMap[b]) branchMap[b] = { total: 0, distributed: 0, remaining: 0 };
+      branchMap[b].total += o.quantity || 1;
+      if (o.distribution) {
+        branchMap[b].distributed += o.quantity || 1;
+      } else {
+        branchMap[b].remaining += o.quantity || 1;
+      }
+    });
+    // Sort branches by total ordered (descending)
+    const breakdown = Object.entries(branchMap).sort(([, a], [, b]) => b.total - a.total);
+    const maxCount = Math.max(...breakdown.map(([, v]) => v.total), 1);
+    return { branchBreakdown: breakdown, maxBranchCount: maxCount };
+  }, [orders]);
+
   async function handleCancel(distributionId: string) {
     setCancelling(true);
     try {
@@ -136,6 +159,25 @@ export default function DashboardPage() {
       else { setError('ยกเลิกล้มเหลว'); }
     } catch { setError('เกิดข้อผิดพลาด'); }
     finally { setCancelling(false); }
+  }
+
+  async function handleToggleRole(id: string, currentRole: 'admin' | 'distributor') {
+    const newRole = currentRole === 'admin' ? 'distributor' : 'admin';
+    try {
+      const res = await fetch('/api/admin/distributors', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, role: newRole }),
+      });
+      if (res.ok) {
+        await loadData(true);
+      } else {
+        const { error: msg } = await res.json();
+        setError(msg || 'เปลี่ยนสิทธิ์ล้มเหลว');
+      }
+    } catch {
+      setError('เกิดข้อผิดพลาด');
+    }
   }
 
   async function handleSaveRegCode() {
@@ -167,11 +209,6 @@ export default function DashboardPage() {
     finally { setSavingAnnouncement(false); }
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push('/login');
-  }
-
   const pct = stats.total > 0 ? Math.round((stats.distributed / stats.total) * 100) : 0;
 
   if (loading) {
@@ -187,122 +224,79 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="page-wrapper">
-      <div className="bg-ambient" aria-hidden="true" />
-
-      {/* Navbar */}
-      <nav className="navbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div style={{
-            width: 34, height: 34,
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'var(--shadow-glow-primary)',
-            flexShrink: 0,
-          }}>
-            <ChartBar size={17} color="#fff" weight="duotone" />
+    <AdminLayout>
+      <div className="container" style={{ maxWidth: '100%', margin: '0 auto' }}>
+        {/* Error */}
+        {error && (
+          <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }} role="alert">
+            <Warning size={16} weight="duotone" style={{ flexShrink: 0 }} />
+            {error}
+            <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="ปิดแจ้งเตือน">
+              <XCircle size={14} weight="duotone" />
+            </button>
           </div>
-          <h1 className="navbar-brand" style={{ margin: 0 }}>Admin Dashboard</h1>
-        </div>
-        <div className="navbar-actions">
-          <button
-            onClick={() => loadData(true)}
-            className="btn btn-ghost btn-sm"
-            disabled={refreshing}
-            aria-label="รีเฟรช"
-            title="รีเฟรชข้อมูล (auto ทุก 30 วิ)"
-            style={{ minWidth: 44, minHeight: 44 }}
-          >
-            <ArrowsClockwise
-              size={18}
-              weight="duotone"
-              style={{ animation: refreshing ? 'spin 0.7s linear infinite' : 'none' }}
-            />
-          </button>
-          <a href="/distribute" className="btn btn-outline btn-sm" style={{ minHeight: 44, display: 'flex', alignItems: 'center' }}>
-            <TShirt size={14} weight="duotone" /> แจกเสื้อ
-          </a>
-          <button onClick={handleLogout} className="btn btn-ghost btn-sm" aria-label="ออกจากระบบ" style={{ minWidth: 44, minHeight: 44 }}>
-            <SignOut size={18} weight="duotone" />
-          </button>
-        </div>
-      </nav>
+        )}
 
-      <main style={{ flex: 1, padding: 'var(--space-5) var(--space-4)', position: 'relative' }}>
-        <div className="container">
-
-          {/* Error */}
-          {error && (
-            <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }} role="alert">
-              <Warning size={16} weight="duotone" style={{ flexShrink: 0 }} />
-              {error}
-              <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="ปิดแจ้งเตือน">
-                <XCircle size={14} weight="duotone" />
-              </button>
-            </div>
-          )}
-
-          {/* Tab Navigation */}
-          <div 
-            role="tablist"
-            style={{
-              display: 'flex', gap: 'var(--space-1)',
-              borderBottom: '1px solid var(--glass-border)',
-              marginBottom: 'var(--space-6)', overflowX: 'auto',
-            }}>
+        {/* Tab Navigation */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-start', 
+          marginBottom: 'var(--space-6)', 
+          borderBottom: '1px solid var(--color-border)', 
+          paddingBottom: 'var(--space-4)',
+          paddingTop: 'var(--space-4)',
+          overflowX: 'auto',
+          position: 'sticky',
+          top: '-2px', // Slight offset to ensure it sticks smoothly
+          zIndex: 30,
+          background: 'color-mix(in srgb, var(--color-background) 85%, transparent)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          margin: '0 calc(-1 * var(--space-4)) var(--space-6)', // Expand to edges on mobile
+          paddingLeft: 'var(--space-4)',
+          paddingRight: 'var(--space-4)',
+        }}>
+          <div role="tablist" className="segmented-control">
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 role="tab"
+                className="tab-btn"
                 aria-selected={tab === key}
                 aria-controls={`tabpanel-${key}`}
                 id={`tab-${key}`}
                 onClick={() => setTab(key)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                  padding: 'var(--space-3) var(--space-4)',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  fontWeight: tab === key ? 700 : 500,
-                  fontSize: 'var(--text-sm)',
-                  color: tab === key ? 'var(--color-primary-hover)' : 'var(--color-text-muted)',
-                  borderBottom: tab === key ? '2px solid var(--color-primary)' : '2px solid transparent',
-                  marginBottom: -1,
-                  whiteSpace: 'nowrap',
-                  transition: 'all var(--transition-fast)',
-                }}
               >
-                <Icon size={15} weight={tab === key ? 'duotone' : 'regular'} />
-                {label(stats, distStats)}
+                <Icon size={16} weight={tab === key ? 'duotone' : 'regular'} />
+                {label(stats, distStats, distributors)}
               </button>
             ))}
           </div>
-
-          <div role="tabpanel" id={`tabpanel-${tab}`} aria-labelledby={`tab-${tab}`}>
-            {tab === 'overview' && (
-              <OverviewTab stats={stats} sizeBreakdown={sizeBreakdown} maxSizeCount={maxSizeCount} pct={pct} />
-            )}
-            {tab === 'orders' && (
-              <OrdersTab 
-                stats={stats} filtered={filtered} filter={filter} search={search}
-                cancelId={cancelId} cancelling={cancelling}
-                setFilter={setFilter} setSearch={setSearch} setCancelId={setCancelId} handleCancel={handleCancel}
-              />
-            )}
-            {tab === 'distributors' && (
-              <DistributorsTab distStats={distStats} showAllDist={showAllDist} setShowAllDist={setShowAllDist} />
-            )}
-            {tab === 'settings' && (
-              <SettingsTab 
-                announcementText={announcementText} setAnnouncementText={setAnnouncementText}
-                savingAnnouncement={savingAnnouncement} announcementOk={announcementOk} handleSaveAnnouncement={handleSaveAnnouncement}
-                regCode={regCode} setRegCode={setRegCode} savingCode={savingCode} handleSaveRegCode={handleSaveRegCode} saveOk={saveOk} stats={stats}
-              />
-            )}
-          </div>
-
         </div>
-      </main>
-    </div>
+
+        <div role="tabpanel" id={`tabpanel-${tab}`} aria-labelledby={`tab-${tab}`}>
+          {tab === 'overview' && (
+            <OverviewTab stats={stats} sizeBreakdown={sizeBreakdown} maxSizeCount={maxSizeCount} pct={pct} branchBreakdown={branchBreakdown} maxBranchCount={maxBranchCount} orders={orders} distributorCount={distributors.length} />
+          )}
+          {tab === 'orders' && (
+            <OrdersTab 
+              stats={stats} filtered={filtered} filter={filter} search={search}
+              cancelId={cancelId} cancelling={cancelling}
+              setFilter={setFilter} setSearch={setSearch} setCancelId={setCancelId} handleCancel={handleCancel}
+            />
+          )}
+          {tab === 'distributors' && (
+            <DistributorsTab distStats={distStats} showAllDist={showAllDist} setShowAllDist={setShowAllDist} distributors={distributors} handleToggleRole={handleToggleRole} />
+          )}
+          {tab === 'settings' && (
+            <SettingsTab 
+              announcementText={announcementText} setAnnouncementText={setAnnouncementText}
+              savingAnnouncement={savingAnnouncement} announcementOk={announcementOk} handleSaveAnnouncement={handleSaveAnnouncement}
+              regCode={regCode} setRegCode={setRegCode} savingCode={savingCode} handleSaveRegCode={handleSaveRegCode} saveOk={saveOk} stats={stats}
+            />
+          )}
+        </div>
+      </div>
+    </AdminLayout>
   );
 }

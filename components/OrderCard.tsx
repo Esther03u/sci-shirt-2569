@@ -91,13 +91,13 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
         padding: 0,
         overflow: 'hidden',
         background: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        boxShadow: `0 24px 64px oklch(0 0 0 / 0.60), 0 0 0 1px oklch(1 0 0 / 0.05), 0 0 40px ${isDistributed ? 'oklch(0.64 0.18 162 / 0.15)' : 'oklch(0.75 0.14 85 / 0.15)'}`,
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 12px 32px oklch(0 0 0 / 0.12)',
       }}
     >
       {/* Premium Gradient Accent Bar */}
       <div style={{
-        height: 4,
+        height: 3,
         background: isDistributed
           ? 'linear-gradient(90deg, oklch(0.55 0.20 162), oklch(0.64 0.18 180))'
           : 'linear-gradient(90deg, oklch(0.68 0.24 335), var(--color-primary))',

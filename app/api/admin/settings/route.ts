@@ -1,6 +1,7 @@
 // app/api/admin/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { AdminSettingSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,10 +13,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { key, value } = await req.json();
-    if (!key || value === undefined) return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+    const body = await req.json();
+    const validation = AdminSettingSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+    }
+    const { key, value } = validation.data;
 
-    const supabase = await createAdminSupabase();
+    const supabase = await createServerSupabase();
     const { error } = await supabase
       .from('settings')
       .upsert({ key, value }, { onConflict: 'key' });

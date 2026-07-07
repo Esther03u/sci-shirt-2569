@@ -1,10 +1,10 @@
 'use client';
-// app/page.tsx — Public Search Page (Phosphor Icons Duotone)
+// app/page.tsx — Premium Centered Layout
 
 import { useState, useEffect } from 'react';
 import {
   MagnifyingGlass, Package, CheckCircle, Clock, QrCode,
-  Sparkle, TShirt, ArrowRight, Megaphone,
+  Sparkle, ArrowRight, Megaphone,
 } from '@phosphor-icons/react';
 import OrderCard from '@/components/OrderCard';
 
@@ -66,15 +66,9 @@ export default function HomePage() {
 
       {/* ── Navbar ── */}
       <nav className="navbar" style={{ backdropFilter: 'blur(16px)', background: 'oklch(0 0 0 / 0.4)', borderBottom: '1px solid oklch(1 1 1 / 0.05)', boxShadow: '0 4px 30px oklch(0 0 0 / 0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div style={{
-            width: 46, height: 46,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            position: 'relative'
-          }}>
-            <img src="/smo-logo.png" alt="SMO Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }} />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/smo-logo.png" alt="SMO Logo" style={{ height: 48, width: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
         </div>
         <a href="/login" className="btn btn-outline btn-sm">
           เข้าสู่ระบบ <ArrowRight size={14} weight="bold" />
@@ -83,67 +77,55 @@ export default function HomePage() {
 
       {/* ── Main Content ── */}
       <main style={{ flex: 1, padding: 'var(--space-12) var(--space-4) var(--space-8)' }}>
-        <div className="container" style={{ maxWidth: 680 }}>
-
-          {/* ── Hero Header ── */}
-          <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)', animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1)' }}>
-            {/* Chip */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-5)' }}>
-              <span className="chip" style={{ animation: 'fadeIn 1s ease-out 0.2s both' }}>
-                <Sparkle size={11} weight="fill" />
-                คณะวิทยาศาสตร์และเทคโนโลยี • มรภ.ภูเก็ต
+        <div className="container" style={{ 
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+        }}>
+          
+          {/* Hero Header */}
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)', animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
+              <span className="chip" style={{ animation: 'fadeIn 1s ease-out 0.2s both', padding: 'var(--space-1) var(--space-4)', borderRadius: 'var(--radius-full)' }}>
+                <Sparkle size={12} weight="fill" />
+                มหาวิทยาลัยราชภัฏภูเก็ต
               </span>
             </div>
-
-            {/* Hero Logo */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 100,
-              height: 100,
-              marginBottom: 'var(--space-4)',
-              animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both',
-              position: 'relative'
-            }}>
-              <img src="/smo-logo.png" alt="SMO Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }} />
-            </div>
-
-            <h1 style={{ marginBottom: 'var(--space-4)', color: 'var(--color-foreground)', fontSize: '1.75rem', lineHeight: 1.4, animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both', letterSpacing: '-0.02em' }}>
-              เช็คลำดับรายชื่อรับเสื้อ<span className="gradient-text">เฟรชชี่</span><br />
-              คณะวิทยาศาสตร์และเทคโนโลยี 2569
+            <h1 style={{ marginBottom: 'var(--space-4)', color: 'var(--color-foreground)', fontSize: 'clamp(2rem, 5vw, 2.75rem)', lineHeight: 1.2, letterSpacing: '-0.04em' }}>
+              เช็คลำดับรับเสื้อ<span className="gradient-text">เฟรชชี่</span><br />
+              <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 600 }}>คณะวิทยาศาสตร์และเทคโนโลยี</span><br />
+              <span style={{ fontSize: 'clamp(1.125rem, 3vw, 1.5rem)', color: 'var(--color-text-muted)' }}>ปีการศึกษา 2569</span>
             </h1>
             <p style={{
               color: 'var(--color-text-muted)',
+              maxWidth: 520,
               margin: '0 auto',
-              maxWidth: 480,
-              lineHeight: 1.75,
-              animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s both'
+              lineHeight: 1.6,
+              fontSize: 'var(--text-base)'
             }}>
-              กรอกเบอร์โทรศัพท์ที่ลงทะเบียนไว้<br />
-              เพื่อตรวจสอบข้อมูลและสถานะการรับเสื้อ
+              กรอกเบอร์โทรศัพท์ที่ลงทะเบียนไว้ เพื่อตรวจสอบข้อมูลไซส์เสื้อและสถานะการรับของของคุณ
             </p>
           </div>
 
-          {/* ── Announcement Banner ── */}
+          {/* Announcement Banner */}
           {announcement && (
-            <div className="glass-card" style={{
-              marginBottom: 'var(--space-6)', padding: 'var(--space-5)',
-              background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 15%, transparent), color-mix(in srgb, var(--color-accent) 5%, transparent))',
-              border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
-              boxShadow: '0 8px 32px color-mix(in srgb, var(--color-primary) 10%, transparent)',
-              display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start',
-              animation: 'slideUp 0.5s cubic-bezier(0.16,1,0.3,1)'
+            <div style={{
+              maxWidth: 560, margin: '0 auto', width: '100%',
+              padding: 'var(--space-4)',
+              background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)',
+              borderRadius: 'var(--radius-lg)',
+              display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start',
+              animation: 'slideUp 0.5s cubic-bezier(0.16,1,0.3,1)',
+              textAlign: 'left'
             }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 'var(--radius-md)',
-                background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', flexShrink: 0, boxShadow: 'var(--shadow-glow-primary)'
-              }}>
-                <Megaphone size={20} weight="duotone" />
+              <div style={{ display: 'flex', padding: '4px', background: 'color-mix(in srgb, var(--color-primary) 15%, transparent)', color: 'var(--color-primary)', borderRadius: 'var(--radius-md)', flexShrink: 0, marginTop: '2px' }}>
+                <Megaphone size={18} weight="duotone" />
               </div>
               <div style={{ flex: 1 }}>
-                <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--color-primary)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+                <h2 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-primary)', margin: '0 0 4px 0' }}>
                   ประกาศด่วน
                 </h2>
                 <div style={{ color: 'var(--color-foreground)', fontSize: 'var(--text-sm)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
@@ -153,70 +135,84 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* ── Search Card ── */}
-          <div
-            className="glass-card"
-            style={{
-              padding: 'var(--space-8)',
-              marginBottom: 'var(--space-6)',
-              boxShadow: '0 24px 64px oklch(0 0 0 / 0.50), 0 0 0 1px oklch(1 0 0 / 0.08)',
-            }}
-          >
-            <form onSubmit={handleSearch}>
-              <div className="input-group" style={{ marginBottom: 'var(--space-5)' }}>
-                <label htmlFor="phone-input" className="input-label">
-                  เบอร์โทรศัพท์ <span className="required">*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="phone-input"
-                    type="tel"
-                    className={`input${error ? ' input-error' : ''}`}
-                    placeholder="เช่น 0812345678"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    inputMode="tel"
-                    autoComplete="tel"
-                    style={{
-                      paddingLeft: 'var(--space-10)',
-                      height: 52,
-                      fontSize: 'var(--text-lg)',
-                      letterSpacing: '0.05em',
-                    }}
-                  />
-                  <MagnifyingGlass
-                    size={18}
-                    weight="duotone"
-                    style={{
-                      position: 'absolute',
-                      left: 'var(--space-4)',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: 'var(--color-text-light)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                </div>
-                {error && <p className="input-error-msg" role="alert">{error}</p>}
+          {/* Premium Search Bar */}
+          <div style={{ marginBottom: 'var(--space-10)' }}>
+            <form onSubmit={handleSearch} style={{ position: 'relative', maxWidth: 560, margin: '0 auto', animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both' }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <MagnifyingGlass
+                  size={22}
+                  weight="duotone"
+                  style={{
+                    position: 'absolute',
+                    left: 'var(--space-6)',
+                    color: 'var(--color-text-light)',
+                    pointerEvents: 'none',
+                    zIndex: 2,
+                  }}
+                />
+                <input
+                  id="phone-input"
+                  type="tel"
+                  maxLength={10}
+                  className={`input${error ? ' input-error' : ''}`}
+                  placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก..."
+                  value={phone}
+                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  style={{
+                    width: '100%',
+                    height: 64,
+                    padding: '0 120px 0 calc(var(--space-6) + 32px)',
+                    fontSize: 'var(--text-lg)',
+                    letterSpacing: '0.05em',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 12px 32px oklch(0 0 0 / 0.1), 0 2px 4px oklch(0 0 0 / 0.05)',
+                    transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.boxShadow = '0 12px 40px oklch(var(--color-primary-raw) / 0.15), 0 0 0 2px var(--color-primary)';
+                    e.target.style.borderColor = 'transparent';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.boxShadow = '0 12px 32px oklch(0 0 0 / 0.1), 0 2px 4px oklch(0 0 0 / 0.05)';
+                    e.target.style.borderColor = 'var(--color-border)';
+                  }}
+                />
+                <button
+                  type="submit"
+                  id="search-submit-btn"
+                  className="btn btn-primary"
+                  disabled={loading || !phone.trim()}
+                  style={{
+                    position: 'absolute',
+                    right: 'var(--space-2)',
+                    height: 48,
+                    borderRadius: 'var(--radius-full)',
+                    padding: '0 var(--space-6)',
+                    fontSize: 'var(--text-sm)',
+                    letterSpacing: '0.02em',
+                    fontWeight: 600,
+                  }}
+                >
+                  {loading ? (
+                    <span className="spinner" style={{ width: 18, height: 18 }} />
+                  ) : (
+                    'ค้นหา'
+                  )}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                id="search-submit-btn"
-                className="btn btn-primary btn-full btn-lg"
-                disabled={loading || !phone.trim()}
-                style={{ fontSize: 'var(--text-base)', letterSpacing: '0.02em' }}
-              >
-                {loading ? (
-                  <><span className="spinner" style={{ width: 18, height: 18 }} /> กำลังค้นหา...</>
-                ) : (
-                  <><MagnifyingGlass size={18} weight="duotone" /> ค้นหาข้อมูลเสื้อ</>
-                )}
-              </button>
+              {error && (
+                <p className="input-error-msg" role="alert" style={{ textAlign: 'center', marginTop: 'var(--space-3)', animation: 'fadeIn 0.3s ease' }}>
+                  {error}
+                </p>
+              )}
             </form>
           </div>
 
-          {/* ── Results ── */}
+          {/* Results */}
           {searched && !loading && (
             <div style={{ animation: 'slideUp 0.35s cubic-bezier(0.16,1,0.3,1)' }}>
               {result ? (
@@ -225,35 +221,44 @@ export default function HomePage() {
                 <div
                   className="glass-card"
                   style={{
-                    padding: 'var(--space-10)',
+                    padding: 'var(--space-8)',
                     textAlign: 'center',
-                    boxShadow: '0 8px 32px oklch(0 0 0 / 0.30)',
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-2xl)',
+                    boxShadow: '0 8px 24px oklch(0 0 0 / 0.1)',
                   }}
                 >
                   <div style={{
-                    width: 64, height: 64,
+                    width: 56, height: 56,
                     background: 'oklch(0.63 0.24 27 / 0.18)',
                     borderRadius: 'var(--radius-full)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto var(--space-4)',
                     border: '1px solid oklch(0.63 0.24 27 / 0.30)',
                   }}>
-                    <Package size={30} weight="duotone" style={{ color: 'oklch(0.73 0.22 27)' }} />
+                    <Package size={26} weight="duotone" style={{ color: 'oklch(0.73 0.22 27)' }} />
                   </div>
-                  <p style={{ fontWeight: 700, fontSize: 'var(--text-lg)', color: 'var(--color-foreground)', marginBottom: 'var(--space-2)' }}>
+                  <p style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--color-foreground)', marginBottom: 'var(--space-2)' }}>
                     ไม่พบข้อมูลการสั่งซื้อ
                   </p>
                   <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', maxWidth: '100%' }}>
-                    กรุณาตรวจสอบเบอร์โทรศัพท์อีกครั้ง<br />หรือติดต่อผู้ดูแลระบบ
+                    กรุณาตรวจสอบเบอร์โทรศัพท์อีกครั้ง<br />หรือติดต่อสโมสรนักศึกษา
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── Feature Hints ── */}
+          {/* Feature Hints (Bento style grid on desktop) */}
           {!searched && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap',
+              gap: 'var(--space-4)',
+              justifyContent: 'center',
+              animation: 'slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both'
+            }}>
               {[
                 {
                   icon: CheckCircle,
@@ -266,28 +271,24 @@ export default function HomePage() {
                   icon: QrCode,
                   color: 'var(--color-primary)',
                   glow: 'var(--color-primary-light)',
-                  title: 'QR Code การรับเสื้อ',
+                  title: 'QR Code สำหรับยืนยันตัวตน',
                   desc: 'รับโค้ดสำหรับยืนยันการรับเสื้อ',
-                },
-                {
-                  icon: Clock,
-                  color: 'oklch(0.72 0.18 72)',
-                  glow: 'oklch(0.72 0.18 72 / 0.15)',
-                  title: 'ข้อมูลการสั่งซื้อ',
-                  desc: 'ดูรายละเอียดไซส์และจำนวน',
                 },
               ].map(({ icon: Icon, color, glow, title, desc }) => (
                 <div
                   key={title}
                   style={{
+                    flex: '1 1 280px',
+                    maxWidth: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 'var(--space-4)',
                     padding: 'var(--space-4)',
-                    background: 'oklch(1 0 0 / 0.03)',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid var(--glass-border)',
-                    transition: 'border-color var(--transition-base)',
+                    background: 'var(--color-surface-2)',
+                    borderRadius: 'var(--radius-xl)',
+                    border: '1px solid var(--color-border)',
+                    transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
+                    boxShadow: '0 4px 12px oklch(0 0 0 / 0.05)',
                   }}
                 >
                   <div style={{
@@ -300,10 +301,10 @@ export default function HomePage() {
                     <Icon size={20} weight="duotone" style={{ color }} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-foreground)', marginBottom: 2 }}>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-foreground)' }}>
                       {title}
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                       {desc}
                     </div>
                   </div>
@@ -316,7 +317,7 @@ export default function HomePage() {
 
       {/* ── Footer ── */}
       <footer style={{
-        padding: 'var(--space-8) var(--space-4)',
+        padding: 'var(--space-6) var(--space-4)',
         textAlign: 'center',
         borderTop: '1px solid var(--glass-border)',
         background: 'linear-gradient(to top, oklch(1 0 0 / 0.02), transparent)',
@@ -324,7 +325,7 @@ export default function HomePage() {
         flexDirection: 'column',
         alignItems: 'center',
         gap: 'var(--space-2)',
-        fontSize: 'var(--text-xs)',
+        fontSize: '11px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <Sparkle size={12} weight="duotone" style={{ color: 'var(--color-primary)' }} />

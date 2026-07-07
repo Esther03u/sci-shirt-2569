@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchSheetData } from '@/lib/google-sheets';
-import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   const [orders, supabase] = await Promise.all([
     fetchSheetData(),
-    createAdminSupabase(),
+    createServerSupabase(),
   ]);
 
   const { data: distributions } = await supabase
@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
       searchPhones,
       size: order.size,
       quantity: order.quantity,
+      branch: order.branch,
       slipUrl: order.slipUrl ?? null,
       distribution: distMap.get(order.phone) ?? null,
     };
@@ -68,6 +69,16 @@ export async function GET(req: NextRequest) {
       o.searchPhones.includes(search)
     );
   }
+
+  // Sort by latest distribution at the top
+  enriched.sort((a, b) => {
+    if (a.distribution && b.distribution) {
+      return new Date(b.distribution.distributed_at).getTime() - new Date(a.distribution.distributed_at).getTime();
+    }
+    if (a.distribution && !b.distribution) return -1;
+    if (!a.distribution && b.distribution) return 1;
+    return a.rowIndex - b.rowIndex;
+  });
 
   return NextResponse.json({
     orders: enriched,

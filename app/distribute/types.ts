@@ -14,9 +14,11 @@ export interface OrderRow {
   displayId: string;
   name: string;
   phone: string;
+  searchPhones?: string;
   size: string;
   quantity: number;
   slipUrl: string | null;
+  branch?: string;
   distribution: { distributed_at: string; distributors?: { name: string } } | null;
 }
 

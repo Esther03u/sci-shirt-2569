@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { fetchSheetData } from '@/lib/google-sheets';
-import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 export async function GET() {
   const session = await getSession();
@@ -15,13 +15,19 @@ export async function GET() {
 
   const [orders, supabase] = await Promise.all([
     fetchSheetData(true),
-    createAdminSupabase(),
+    createServerSupabase(),
   ]);
 
-  const { data: distributions } = await supabase
-    .from('distributions')
-    .select('*, distributors!distributions_distributed_by_fkey(name)')
-    .eq('cancelled', false);
+  const [{ data: distributions }, { data: allDistributors }] = await Promise.all([
+    supabase
+      .from('distributions')
+      .select('*, distributors!distributions_distributed_by_fkey(name)')
+      .eq('cancelled', false),
+    supabase
+      .from('distributors')
+      .select('id, name, email, role')
+      .order('created_at', { ascending: true })
+  ]);
 
   const distMap = new Map(
     (distributions ?? []).map(d => [d.phone, d])
@@ -51,9 +57,20 @@ export async function GET() {
     }
   });
 
+  // Sort by latest distribution at the top
+  enriched.sort((a, b) => {
+    if (a.distribution && b.distribution) {
+      return new Date((b.distribution as any).distributed_at).getTime() - new Date((a.distribution as any).distributed_at).getTime();
+    }
+    if (a.distribution && !b.distribution) return -1;
+    if (!a.distribution && b.distribution) return 1;
+    return a.rowIndex - b.rowIndex;
+  });
+
   return NextResponse.json({
     orders: enriched,
     stats: { total, distributed, remaining: total - distributed },
     distributorStats: Object.values(distributorStats),
+    distributors: allDistributors ?? [],
   });
 }

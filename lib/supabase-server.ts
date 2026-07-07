@@ -11,9 +11,13 @@ export async function createServerSupabase() {
       cookies: {
         getAll() { return cookieStore.getAll(); },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch (error) {
+            // Ignored if called from a Server Component
+          }
         },
       },
     }
@@ -39,8 +43,12 @@ export async function createAdminSupabase() {
 
 export async function getSession() {
   const supabase = await createServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    console.error("Auth error in getSession:", error?.message);
+    return null;
+  }
+  return { user };
 }
 
 export async function getDistributorProfile(userId: string) {

@@ -92,87 +92,96 @@ export default function RegisterPage() {
     );
   }
 
-  /* ── Form ── */
   return (
     <div style={{
       minHeight: '100dvh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 'var(--space-4)',
+      flexDirection: 'column',
+      padding: 'var(--space-6)',
       position: 'relative',
+      overflow: 'hidden',
     }}>
       <div className="bg-ambient" aria-hidden="true" />
-
-      <div style={{ width: '100%', maxWidth: 440, position: 'relative' }}>
-
-        {/* Back link */}
-        <div style={{ marginBottom: 'var(--space-6)' }}>
-          <a href="/login" className="btn btn-ghost btn-sm" style={{ paddingLeft: 0 }}>
-            <ArrowLeft size={15} weight="bold" /> กลับหน้าเข้าสู่ระบบ
-          </a>
+      
+      {/* Top Navigation */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: 1200, margin: '0 auto', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/smo-logo.png" alt="SMO Logo" style={{ height: 40, width: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }} />
         </div>
+        <a href="/login" className="btn btn-ghost btn-sm" style={{ paddingLeft: 0, paddingRight: 0 }}>
+          <ArrowLeft size={15} weight="bold" style={{ marginRight: 'var(--space-1)' }} /> กลับหน้าเข้าสู่ระบบ
+        </a>
+      </div>
 
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 68, height: 68,
-            background: 'radial-gradient(circle at 30% 30%, var(--color-secondary), var(--color-primary))',
-            borderRadius: 'var(--radius-xl)',
-            marginBottom: 'var(--space-5)',
-            boxShadow: '0 0 40px var(--color-primary-glow), 0 0 80px var(--color-primary-light), inset 0 1px 0 oklch(1 0 0 / 0.20)',
-          }}>
-            <UserPlus size={34} color="#fff" weight="duotone" />
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 'var(--space-4)',
+        paddingBottom: 'var(--space-12)',
+        zIndex: 1,
+      }}>
+        <div className="glass-card" style={{ width: '100%', maxWidth: 400, padding: 'var(--space-8)' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 56, height: 56,
+              background: 'oklch(1 0 0 / 0.03)',
+              borderRadius: 'var(--radius-full)',
+              marginBottom: 'var(--space-4)',
+              border: '1px solid oklch(1 0 0 / 0.08)',
+              boxShadow: '0 4px 12px oklch(0 0 0 / 0.1)',
+            }}>
+              <UserPlus size={28} weight="duotone" style={{ color: 'var(--color-foreground)' }} />
+            </div>
+            <h1 style={{ fontSize: 'var(--text-xl)', marginBottom: 'var(--space-2)', color: 'var(--color-foreground)', letterSpacing: '-0.02em' }}>
+              สมัครบัญชีผู้แจก
+            </h1>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0, lineHeight: 1.5 }}>
+              ต้องใช้รหัสลับจากแอดมินเพื่อยืนยันตัวตน
+            </p>
           </div>
-          <h1 style={{ fontSize: 'var(--text-2xl)', marginBottom: 'var(--space-2)', color: 'var(--color-foreground)' }}>
-            สมัครบัญชีผู้แจก
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>
-            ต้องมีรหัสลับจากแอดมินก่อนสมัคร
-          </p>
-        </div>
 
-        {/* Form card */}
-        <div className="glass-card" style={{
-          padding: 'var(--space-6)',
-          boxShadow: '0 24px 64px oklch(0 0 0 / 0.50), 0 0 0 1px oklch(1 0 0 / 0.08)',
-        }}>
+          {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {error && (
-              <div className="alert alert-error" role="alert" aria-live="polite">
+              <div className="alert alert-error" role="alert" aria-live="polite" style={{ padding: 'var(--space-3)' }}>
                 {error}
               </div>
             )}
 
             <div className="input-group">
-              <label htmlFor="name" className="input-label">ชื่อ-นามสกุล <span className="required">*</span></label>
+              <label htmlFor="name" className="input-label" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-muted)' }}>ชื่อ-นามสกุล</label>
               <input id="name" type="text" className="input" placeholder="สมชาย ใจดี"
-                value={form.name} onChange={set('name')} required autoComplete="name" />
+                value={form.name} onChange={set('name')} required autoComplete="name" 
+                style={{ background: 'oklch(1 0 0 / 0.03)', borderColor: 'oklch(1 0 0 / 0.08)' }} />
             </div>
 
             <div className="input-group">
-              <label htmlFor="email" className="input-label">อีเมล <span className="required">*</span></label>
-              <input id="email" type="email" className="input" placeholder="your@email.com"
-                value={form.email} onChange={set('email')} required autoComplete="email" />
+              <label htmlFor="email" className="input-label" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-muted)' }}>อีเมล</label>
+              <input id="email" type="email" className="input" placeholder="name@example.com"
+                value={form.email} onChange={set('email')} required autoComplete="email" 
+                style={{ background: 'oklch(1 0 0 / 0.03)', borderColor: 'oklch(1 0 0 / 0.08)' }} />
             </div>
 
             <div className="input-group">
-              <label htmlFor="reg-code" className="input-label">
+              <label htmlFor="reg-code" className="input-label" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-muted)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                  <Key size={13} weight="duotone" style={{ color: 'var(--color-accent)' }} />
-                  รหัสลับ <span className="required">*</span>
+                  <Key size={14} weight="bold" style={{ color: 'var(--color-accent)' }} />
+                  รหัสลับ
                 </span>
               </label>
               <input id="reg-code" type="text" className="input" placeholder="รหัสที่ได้รับจากแอดมิน"
-                value={form.registrationCode} onChange={set('registrationCode')} required />
-              <p className="input-hint">ขอรหัสจากผู้ดูแลระบบก่อนสมัคร</p>
+                value={form.registrationCode} onChange={set('registrationCode')} required 
+                style={{ background: 'oklch(1 0 0 / 0.03)', borderColor: 'oklch(1 0 0 / 0.08)' }} />
             </div>
 
             <div className="input-group">
-              <label htmlFor="reg-password" className="input-label">รหัสผ่าน <span className="required">*</span></label>
+              <label htmlFor="reg-password" className="input-label" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-muted)' }}>รหัสผ่าน</label>
               <div style={{ position: 'relative' }}>
                 <input
                   id="reg-password"
@@ -180,60 +189,55 @@ export default function RegisterPage() {
                   className="input" placeholder="อย่างน้อย 8 ตัวอักษร"
                   value={form.password} onChange={set('password')}
                   required autoComplete="new-password"
-                  style={{ paddingRight: 'var(--space-10)' }}
+                  style={{ paddingRight: 'var(--space-10)', background: 'oklch(1 0 0 / 0.03)', borderColor: 'oklch(1 0 0 / 0.08)' }}
                 />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   style={{
-                    position: 'absolute', right: 'var(--space-3)', top: '50%',
+                    position: 'absolute', right: 'var(--space-2)', top: '50%',
                     transform: 'translateY(-50%)', background: 'none', border: 'none',
                     cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4,
-                    display: 'flex', minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center',
+                    display: 'flex', minHeight: 36, minWidth: 36, alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 'var(--radius-sm)',
                   }}
                   aria-label={showPass ? 'ซ่อน' : 'แสดง'}
                 >
-                  {showPass ? <EyeSlash size={17} weight="duotone" /> : <Eye size={17} weight="duotone" />}
+                  {showPass ? <EyeSlash size={16} weight="bold" /> : <Eye size={16} weight="bold" />}
                 </button>
               </div>
             </div>
 
             <div className="input-group">
-              <label htmlFor="confirm-password" className="input-label">ยืนยันรหัสผ่าน <span className="required">*</span></label>
+              <label htmlFor="confirm-password" className="input-label" style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-muted)' }}>ยืนยันรหัสผ่าน</label>
               <input
                 id="confirm-password"
                 type={showPass ? 'text' : 'password'}
                 className="input" placeholder="กรอกรหัสผ่านอีกครั้ง"
                 value={form.confirmPassword} onChange={set('confirmPassword')}
                 required autoComplete="new-password"
+                style={{ background: 'oklch(1 0 0 / 0.03)', borderColor: 'oklch(1 0 0 / 0.08)' }}
               />
             </div>
 
             <button
               type="submit" id="register-submit-btn"
-              className="btn btn-primary btn-full btn-lg"
+              className="btn btn-primary btn-full"
               disabled={loading}
-              style={{ marginTop: 'var(--space-2)' }}
+              style={{ marginTop: 'var(--space-4)', height: 44, borderRadius: 'var(--radius-md)' }}
             >
               {loading
-                ? <><span className="spinner" style={{ width: 18, height: 18 }} /> กำลังสมัคร...</>
-                : <><UserPlus size={18} weight="duotone" /> สมัครบัญชี</>}
+                ? <><span className="spinner" style={{ width: 16, height: 16 }} /> กำลังสมัคร...</>
+                : 'สมัครบัญชี'}
             </button>
           </form>
 
-          <hr className="divider" />
-          <p style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
-            มีบัญชีแล้ว?{' '}
-            <a href="/login" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>เข้าสู่ระบบ</a>
-          </p>
-        </div>
-
-        {/* Footer brand */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 'var(--space-2)', marginTop: 'var(--space-6)',
-          color: 'var(--color-text-light)', fontSize: 'var(--text-xs)',
-        }}>
-          <TShirt size={13} weight="duotone" />
-          SCI Shirt 2569 — มรภ.ภูเก็ต
+          <div style={{ marginTop: 'var(--space-6)', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+              มีบัญชีอยู่แล้ว?{' '}
+              <a href="/login" style={{ color: 'var(--color-foreground)', fontWeight: 500 }}>
+                เข้าสู่ระบบ
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

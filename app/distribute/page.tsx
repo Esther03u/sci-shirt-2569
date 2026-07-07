@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, CheckCircle2, Clock, LogOut, Shirt, Phone,
   QrCode, X, Package, TrendingUp, History, AlertTriangle,
-  List, FileImage, ChevronDown, ChevronUp,
+  List, FileImage, ChevronDown, ChevronUp, LayoutDashboard,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import type { Html5Qrcode } from 'html5-qrcode';
 import { OrderResult, MyStats, OrderRow, Tab } from './types';
 import { SearchTab, ScanTab, AllOrdersTab } from './Tabs';
+import AdminLayout from '@/components/AdminLayout';
 
 export default function DistributePage() {
   const router = useRouter();
@@ -50,12 +51,12 @@ export default function DistributePage() {
 
   const loadAllOrders = useCallback(async (
     filter: 'all' | 'distributed' | 'pending' = 'all',
-    search = ''
+    search = '' // kept for backwards compatibility in args, but not sent to server
   ) => {
     setAllLoading(true);
     try {
       const params = new URLSearchParams({ filter });
-      if (search) params.set('search', search);
+      // We fetch all orders for the current filter to allow client-side live search
       const res = await fetch(`/api/distribute/orders?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -88,19 +89,25 @@ export default function DistributePage() {
       return;
     }
     
-    // Dynamic import to avoid SSR issues with html5-qrcode
-    import('html5-qrcode').then(({ Html5Qrcode }) => {
+    import('html5-qrcode').then(({ Html5Qrcode, Html5QrcodeSupportedFormats }) => {
       if (!scanDivRef.current) return;
       
       try {
-        const scanner = new Html5Qrcode('qr-scan-region');
+        const scanner = new Html5Qrcode('qr-scan-region', {
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          verbose: false
+        });
         scannerRef.current = scanner;
         setScanning(true);
         setScanError('');
         
         scanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { 
+            fps: 60, // Maximum frame rate
+            qrbox: { width: 250, height: 250 },
+            disableFlip: true, // Do not scan for mirrored QR codes, doubles scanning speed
+          },
           (decodedText: string) => {
             stopScanner();
             setTab('search');
@@ -203,26 +210,8 @@ export default function DistributePage() {
   const isDistributed = result?.distribution != null;
 
   return (
-    <div className="page-wrapper">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <Shirt size={20} color="var(--color-primary)" />
-          <span className="navbar-brand">ระบบแจกเสื้อ</span>
-        </div>
-        <div className="navbar-actions">
-          {profile?.role === 'admin' && (
-            <button onClick={() => router.push('/dashboard')} className="btn btn-outline btn-sm">
-              Dashboard
-            </button>
-          )}
-          <button onClick={handleLogout} className="btn btn-ghost btn-sm" title="ออกจากระบบ">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </nav>
-
-      <main className="container" style={{ maxWidth: 800 }}>
+    <AdminLayout>
+      <div className="container" style={{ maxWidth: 800, margin: '0 auto' }}>
         {/* Welcome */}
         <div style={{ marginBottom: 'var(--space-6)' }}>
           <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, color: 'var(--color-foreground)', fontFamily: 'var(--font-heading)' }}>
@@ -237,24 +226,25 @@ export default function DistributePage() {
           {/* ── Stats Summary ── */}
           {stats && (
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: 'var(--space-3)', marginBottom: 'var(--space-2)'
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 'var(--space-2)', marginBottom: 'var(--space-4)'
             }}>
               {[
-                { label: 'ยอดของฉัน (รวม)', value: stats.myStats.total, icon: Shirt, color: 'var(--color-accent)' },
-                { label: 'ยอดของฉัน (วันนี้)', value: stats.myStats.today, icon: TrendingUp, color: 'var(--color-primary)' },
-                { label: 'ยอดแจกทั้งระบบ', value: stats.overall.distributed, icon: CheckCircle2, color: 'var(--color-success)' },
+                { label: 'ของฉัน', value: stats.myStats.total, icon: Shirt, color: 'var(--color-accent)' },
+                { label: 'วันนี้', value: stats.myStats.today, icon: TrendingUp, color: 'var(--color-primary)' },
+                { label: 'ทั้งหมด', value: stats.overall.distributed, icon: CheckCircle2, color: 'var(--color-success)' },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="card" style={{
-                  padding: 'var(--space-4)',
-                  display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                  padding: 'var(--space-3) var(--space-2)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: 'var(--space-1)',
+                  textAlign: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-text-muted)' }}>
-                    <Icon size={13} style={{ color }} />
-                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, color: 'var(--color-text-muted)' }}>
+                    <Icon size={12} style={{ color }} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 'var(--text-2xl)', color, lineHeight: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 'var(--text-xl)', color, lineHeight: 1, marginTop: 2 }}>
                     {value}
                   </span>
                 </div>
@@ -262,43 +252,49 @@ export default function DistributePage() {
             </div>
           )}
 
-          {/* ── Tab Switcher ── */}
-          <div style={{
-            display: 'flex',
-            gap: 'var(--space-2)',
-            marginBottom: 'var(--space-4)',
-            background: 'var(--color-muted)',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--space-1)',
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, 1fr)', 
+            gap: 'var(--space-3)', 
+            marginBottom: 'var(--space-6)' 
           }}>
             {([
               { key: 'search', label: 'ค้นหาเบอร์',    icon: Search },
               { key: 'scan',   label: 'สแกน QR',       icon: QrCode },
-              { key: 'all',    label: 'รายการทั้งหมด',  icon: List   },
-            ] as const).map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                style={{
-                  flex: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 'var(--space-2)',
-                  padding: 'var(--space-2) var(--space-3)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: 'var(--text-xs)',
-                  transition: 'all var(--transition-fast)',
-                  background: tab === key ? 'var(--color-surface)' : 'transparent',
-                  color: tab === key ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  boxShadow: tab === key ? 'var(--shadow-sm)' : 'none',
-                }}
-              >
-                <Icon size={14} />
-                {label}
-              </button>
-            ))}
+              { key: 'all',    label: 'ทั้งหมด',  icon: List   },
+            ] as const).map(({ key, label, icon: Icon }) => {
+              const isActive = tab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--space-3)',
+                    padding: 'var(--space-4) var(--space-2)',
+                    minHeight: '100px',
+                    borderRadius: 'var(--radius-xl)',
+                    border: '1px solid',
+                    borderColor: isActive ? 'var(--color-primary)' : 'var(--glass-border)',
+                    background: isActive ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' : 'var(--glass-bg)',
+                    color: isActive ? '#111' : 'var(--color-text-muted)',
+                    boxShadow: isActive ? '0 8px 24px var(--color-primary-glow)' : 'var(--shadow-sm)',
+                    transform: isActive ? 'translateY(-2px)' : 'none',
+                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    cursor: 'pointer',
+                    backdropFilter: 'var(--glass-blur)',
+                    WebkitBackdropFilter: 'var(--glass-blur)'
+                  }}
+                  aria-selected={isActive}
+                >
+                  <Icon size={32} strokeWidth={isActive ? 2.5 : 2} style={{ filter: isActive ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' : 'none' }} />
+                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: isActive ? 700 : 500, letterSpacing: '-0.01em' }}>{label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* ── Messages (always visible) ── */}
@@ -353,7 +349,7 @@ export default function DistributePage() {
           )}
 
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

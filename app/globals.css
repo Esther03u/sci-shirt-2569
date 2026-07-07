@@ -1,5 +1,4 @@
 
-
 /* ─── Design Tokens — Dark Mode Cinematic ──────────── */
 :root {
   /* Brand Colors */
@@ -381,6 +380,9 @@ a:hover { color: var(--color-primary-hover); }
   border-radius: var(--radius-lg);
   padding: var(--space-6);
 }
+@media (max-width: 768px) {
+  .card { padding: var(--space-4); }
+}
 .card-header {
   display: flex;
   align-items: center;
@@ -686,4 +688,350 @@ tbody tr:hover { background: oklch(1 0 0 / 0.04); }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ─── Segmented Control / Tabs ──────────────────────── */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background: oklch(1 0 0 / 0.05);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+  box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.1);
+}
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.5rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+}
+.tab-btn:hover:not([aria-selected="true"]) {
+  color: var(--color-text);
+  background: oklch(1 0 0 / 0.03);
+}
+.tab-btn[aria-selected="true"] {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  box-shadow: var(--shadow-sm), 0 0 0 1px oklch(1 0 0 / 0.05);
+}
+
+/* ─── Toolbar ───────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* ─── App Shell Architecture ───────────────────────── */
+:root {
+  --sidebar-width: 260px;
+  --bottom-nav-height: 64px;
+  --mobile-header-height: 56px;
+}
+
+.app-shell {
+  display: flex;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.app-sidebar {
+  width: var(--sidebar-width);
+  height: 100dvh;
+  border-right: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-sticky);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none !important;
+  }
+}
+
+.app-sidebar-header {
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-brand-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-brand-text {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-foreground);
+  letter-spacing: -0.01em;
+}
+
+.app-sidebar-nav {
+  flex: 1;
+  padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow-y: auto;
+}
+
+.app-sidebar-footer {
+  padding: var(--space-4) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.app-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--text-sm);
+}
+
+.app-nav-item:hover {
+  color: var(--color-text);
+  background: oklch(1 0 0 / 0.04);
+}
+
+.app-nav-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.app-nav-item.danger:hover {
+  color: var(--color-destructive);
+  background: var(--color-destructive-light);
+}
+
+.app-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-mobile-header {
+  height: var(--mobile-header-height);
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(20px);
+  z-index: var(--z-sticky);
+  flex-shrink: 0;
+}
+
+@media (min-width: 769px) {
+  .app-mobile-header {
+    display: none !important;
+  }
+}
+
+.app-brand-icon-sm {
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-brand-text-sm {
+  font-size: var(--text-base);
+  margin: 0;
+  font-weight: 600;
+}
+
+.app-mobile-logout {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+  margin-right: -8px;
+  border-radius: var(--radius-full);
+  display: flex;
+}
+.app-mobile-logout:active {
+  background: oklch(1 0 0 / 0.08);
+}
+
+.app-content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-8);
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-bottom-nav {
+  height: var(--bottom-nav-height);
+  background: color-mix(in srgb, var(--color-surface-2) 90%, transparent);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom);
+  flex-shrink: 0;
+  z-index: var(--z-sticky);
+}
+
+@media (min-width: 769px) {
+  .app-bottom-nav {
+    display: none !important;
+  }
+}
+
+.app-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.65rem;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.app-bottom-nav-icon-wrapper {
+  padding: 4px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.app-bottom-nav-item.active {
+  color: var(--color-primary);
+}
+.app-bottom-nav-item.active .app-bottom-nav-icon-wrapper {
+  background: var(--color-primary-light);
+}
+
+/* ─── App List View ────────────────────────────────── */
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.app-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  transition: background var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+@media (hover: hover) {
+  .app-list-item:hover {
+    background: var(--color-surface-2);
+  }
+}
+.app-list-item:active {
+  background: var(--color-surface-3);
+}
+
+.app-list-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-list-title {
+  font-weight: 600;
+  color: var(--color-foreground);
+  font-size: var(--text-sm);
+}
+
+.app-list-subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.app-list-trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile { display: none !important; }
+  .app-content-scrollable { padding: var(--space-4); }
+}
+
+@media (min-width: 769px) {
+  .hide-on-desktop { display: none !important; }
 }

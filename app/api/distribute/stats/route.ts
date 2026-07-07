@@ -1,7 +1,7 @@
 // app/api/distribute/stats/route.ts — Stats for logged-in distributor
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { createAdminSupabase, getSession } from '@/lib/supabase-server';
+import { createServerSupabase, getSession } from '@/lib/supabase-server';
 import { fetchSheetData } from '@/lib/google-sheets';
 
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const [supabase, orders] = await Promise.all([
-    createAdminSupabase(),
+    createServerSupabase(),
     fetchSheetData()
   ]);
 

@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeOrderId, findOrderByPhone } from '@/lib/google-sheets';
-import { createAdminSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 // GET: decode token and return order + distribution status
 export async function GET(
@@ -21,7 +21,7 @@ export async function GET(
     return NextResponse.json({ error: 'ไม่พบข้อมูลการสั่งซื้อ' }, { status: 404 });
   }
 
-  const supabase = await createAdminSupabase();
+  const supabase = await createServerSupabase();
   const { data: dist } = await supabase
     .from('distributions')
     .select('*, distributors!distributions_distributed_by_fkey(name)')
@@ -54,7 +54,7 @@ export async function POST(
     return NextResponse.json({ error: 'ไม่พบข้อมูลการสั่งซื้อ' }, { status: 404 });
   }
 
-  const supabase = await createAdminSupabase();
+  const supabase = await createServerSupabase();
 
   // Check already distributed
   const { data: existing } = await supabase
