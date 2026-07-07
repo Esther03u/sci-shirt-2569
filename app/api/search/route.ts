@@ -15,11 +15,18 @@ export async function GET(req: NextRequest) {
     // Fetch all recipients and filter in JS for robust search matching
     const { data: recipients } = await supabase.from('recipients').select('*');
     
-    const normalized = phone.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
+    const normalized = phone.replace(/\D/g, '').replace(/^(66)/, '0');
     
     const matchedRecipient = (recipients || []).find(rec => {
-      const sp = (rec.metadata as any)?.searchPhones || '';
-      return sp.split(',').includes(normalized);
+      const identifier = String(rec.identifier || '');
+      const phoneInMeta = String((rec.metadata as any)?.phone || '');
+      const sp = String((rec.metadata as any)?.searchPhones || '');
+      
+      const allPhones = [identifier, phoneInMeta, ...sp.split(',')]
+        .map(p => p.replace(/\D/g, '').replace(/^(66)/, '0'))
+        .filter(Boolean);
+        
+      return allPhones.includes(normalized);
     });
 
     if (!matchedRecipient) {
