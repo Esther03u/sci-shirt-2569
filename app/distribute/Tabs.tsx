@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import {
   Search, CheckCircle2, Clock, Phone, QrCode, X, Package, AlertTriangle, FileImage, ChevronDown, ChevronUp, History, Shirt, ExternalLink
 } from 'lucide-react';
@@ -71,16 +72,17 @@ function SlipImage({ url, fallbackDriveUrl }: { url?: string | null, fallbackDri
       const match = imageSrc.match(/\/d\/([a-zA-Z0-9_-]+)/);
       if (match) id = match[1];
     }
-    if (id) imageSrc = `https://drive.google.com/uc?id=${id}`;
+    if (id) imageSrc = `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+    <div style={{ position: 'relative', width: '100%', height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <Image
         src={imageSrc}
         alt="Slip Preview"
-        style={{ maxWidth: '100%', maxHeight: 400, objectFit: 'contain' }}
+        fill
+        style={{ objectFit: 'contain' }}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         onError={() => setError(true)}
       />
       <a
