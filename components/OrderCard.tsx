@@ -5,8 +5,19 @@ import { useState, useEffect, useRef } from 'react';
 import { toPng } from 'html-to-image';
 import {
   CheckCircle, Clock, DownloadSimple, QrCode,
-  User, Phone, Ruler, Hash, Sparkle,
+  User, Phone, Ruler, Hash, Sparkle, CurrencyCircleDollar,
 } from '@phosphor-icons/react';
+
+function calculatePrice(size: string | undefined | null, quantity: number | undefined | null | string): number {
+  const sz = (size || '').toUpperCase();
+  const qty = Number(quantity) || 1;
+  let extra = 0;
+  if (['3XL', '4XL', '5XL'].includes(sz)) extra = 10;
+  else if (['6XL', '7XL'].includes(sz)) extra = 20;
+  else if (sz === '8XL') extra = 25;
+  
+  return (350 + extra) * qty;
+}
 
 interface Distribution {
   id: string;
@@ -150,8 +161,10 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
             { icon: Phone, label: 'เบอร์โทร',  value: order.phone as string, color: 'oklch(0.70 0.12 155)' },
             { icon: Ruler, label: 'ไซส์',      value: order.size as string || '-', color: 'oklch(0.75 0.15 70)' },
             { icon: User,  label: 'จำนวน',    value: `${order.quantity} ตัว`, color: 'oklch(0.68 0.24 335)' },
-          ].map(({ icon: Icon, label, value, color }) => (
+            { icon: CurrencyCircleDollar, label: 'ยอดรวม', value: `${calculatePrice(order.size as string, order.quantity as string)} ฿`, color: 'oklch(0.65 0.15 110)', fullWidth: true },
+          ].map(({ icon: Icon, label, value, color, fullWidth }) => (
             <div key={label} style={{
+              gridColumn: fullWidth ? '1 / -1' : undefined,
               padding: 'var(--space-3)',
               background: 'var(--color-surface-2)',
               borderRadius: 'var(--radius-lg)',
