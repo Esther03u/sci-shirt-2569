@@ -6,7 +6,7 @@ import { rateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
   // 1. Rate Limiting (15 requests per 15 mins by default)
-  const ip = req.headers.get('x-forwarded-for') ?? req.ip ?? '127.0.0.1';
+  const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
   const limitStatus = rateLimit(ip, 15);
   if (!limitStatus.success) {
     return NextResponse.json({ error: 'ค้นหาบ่อยเกินไป กรุณารอสักครู่' }, { status: 429 });
