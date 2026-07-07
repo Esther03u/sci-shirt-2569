@@ -239,7 +239,7 @@ export function SearchTab({
                   overflow: 'hidden',
                   display: 'flex', flexDirection: 'column'
                 }}>
-                  <SlipImage url={result.order.supabaseSlipUrl} fallbackDriveUrl={result.order.slipUrl as string} />
+                  <SlipImage url={result.order.supabaseSlipUrl as string | undefined} fallbackDriveUrl={result.order.slipUrl as string} />
                 </div>
               )}
             </div>

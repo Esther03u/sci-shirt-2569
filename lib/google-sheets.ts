@@ -19,7 +19,7 @@ export interface ShirtOrder {
   [key: string]: string | number | undefined;
 }
 
-export async function fetchSheetData(): Promise<ShirtOrder[]> {
+export async function fetchSheetData(forceRefresh?: boolean): Promise<ShirtOrder[]> {
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
   const gidsToTry = ['1257582283', '0', '1', '2', ''];
@@ -189,3 +189,14 @@ export function decodeOrderId(token: string): { rowIndex: number; phone: string 
     return null;
   }
 }
+
+export async function findOrderByPhone(phone: string): Promise<ShirtOrder | null> {
+  try {
+    const orders = await fetchSheetData();
+    return orders.find(o => o.phone === phone || o.searchPhones.includes(phone)) || null;
+  } catch (error) {
+    console.error('[sheets] Error in findOrderByPhone:', error);
+    return null;
+  }
+}
+

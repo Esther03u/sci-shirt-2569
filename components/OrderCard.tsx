@@ -163,7 +163,7 @@ export default function OrderCard({ order, distribution }: OrderCardProps) {
             { icon: User,  label: 'จำนวน',    value: `${order.quantity} ตัว`, color: 'oklch(0.68 0.24 335)' },
             { icon: CurrencyCircleDollar, label: 'ยอดรวม', value: `${calculatePrice(order.size as string, order.quantity as string)} ฿`, color: 'oklch(0.65 0.15 110)' },
             { icon: (order.slipUrl || order.supabaseSlipUrl) ? CheckCircle : Clock, label: 'สถานะชำระเงิน', value: (order.slipUrl || order.supabaseSlipUrl) ? 'ชำระเงินแล้ว' : 'รอตรวจสอบ', color: (order.slipUrl || order.supabaseSlipUrl) ? 'oklch(0.64 0.18 162)' : 'oklch(0.75 0.14 85)' },
-          ].map(({ icon: Icon, label, value, color, fullWidth }) => (
+          ].map(({ icon: Icon, label, value, color, fullWidth }: any) => (
             <div key={label} style={{
               gridColumn: fullWidth ? '1 / -1' : undefined,
               padding: 'var(--space-3)',
