@@ -17,5 +17,5 @@ export interface Order {
 }
 
 export interface Stats { total: number; distributed: number; remaining: number; }
-export interface DistStat { name: string; count: number; lastAt: string; }
+export interface DistStat { id: string; name: string; count: number; lastAt: string; }
 export interface Distributor { id: string; name: string; email: string; role: 'admin' | 'distributor'; }

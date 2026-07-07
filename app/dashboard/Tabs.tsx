@@ -497,7 +497,7 @@ export function DistributorsTab({
 
   const mergedList = useMemo(() => {
     return distributors.map(d => {
-      const stat = distStats.find(s => s.name === d.name);
+      const stat = distStats.find(s => s.id === d.id);
       return {
         ...d,
         count: stat?.count || 0,

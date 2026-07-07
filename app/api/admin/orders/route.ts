@@ -50,13 +50,13 @@ export async function GET() {
   const distributed = enriched.reduce((sum, order) => order.distribution ? sum + (order.quantity || 1) : sum, 0);
 
   // Per-distributor stats
-  const distributorStats: Record<string, { name: string; count: number; lastAt: string }> = {};
+  const distributorStats: Record<string, { id: string; name: string; count: number; lastAt: string }> = {};
   enriched.forEach(o => {
     if (o.distribution) {
       const d = o.distribution as any;
       const id = d.distributed_by || 'unknown';
       const name = d.distributors?.name ?? 'ไม่ทราบ';
-      if (!distributorStats[id]) distributorStats[id] = { name, count: 0, lastAt: '' };
+      if (!distributorStats[id]) distributorStats[id] = { id, name, count: 0, lastAt: '' };
       distributorStats[id].count += (o.quantity || 1);
       if (!distributorStats[id].lastAt || d.distributed_at > distributorStats[id].lastAt) {
         distributorStats[id].lastAt = d.distributed_at;
