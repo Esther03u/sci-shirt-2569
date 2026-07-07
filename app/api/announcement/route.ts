@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase-server';
+import { createAdminSupabase } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabase();
+    const supabase = await createAdminSupabase();
     const { data, error } = await supabase
       .from('settings')
       .select('value')
