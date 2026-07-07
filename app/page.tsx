@@ -90,7 +90,7 @@ export default function HomePage() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
               <span className="chip" style={{ animation: 'fadeIn 1s ease-out 0.2s both', padding: 'var(--space-1) var(--space-4)', borderRadius: 'var(--radius-full)' }}>
                 <Sparkle size={12} weight="fill" />
-                มหาวิทยาลัยราชภัฏภูเก็ต
+                สโมสรนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี
               </span>
             </div>
             <h1 style={{ marginBottom: 'var(--space-4)', color: 'var(--color-foreground)', fontSize: 'clamp(2rem, 5vw, 2.75rem)', lineHeight: 1.2, letterSpacing: '-0.04em' }}>
