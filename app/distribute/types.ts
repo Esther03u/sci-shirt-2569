@@ -18,6 +18,7 @@ export interface OrderRow {
   size: string;
   quantity: number;
   slipUrl: string | null;
+  supabaseSlipUrl?: string | null;
   branch?: string;
   distribution: { distributed_at: string; distributors?: { name: string } } | null;
 }

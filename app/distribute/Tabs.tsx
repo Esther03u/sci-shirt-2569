@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Search, CheckCircle2, Clock, Phone, QrCode, X, Package, AlertTriangle, FileImage, ChevronDown, ChevronUp, History, Shirt
+  Search, CheckCircle2, Clock, Phone, QrCode, X, Package, AlertTriangle, FileImage, ChevronDown, ChevronUp, History, Shirt, ExternalLink
 } from 'lucide-react';
 import { OrderResult, MyStats, OrderRow } from './types';
 
@@ -15,6 +15,89 @@ function getDriveId(url: string | null | undefined): string | null {
     // ignore invalid URLs
   }
   return null;
+}
+
+function calculatePrice(size: string | undefined | null, quantity: number | undefined | null): number {
+  const sz = (size || '').toUpperCase();
+  const qty = quantity || 1;
+  let extra = 0;
+  if (['3XL', '4XL', '5XL'].includes(sz)) extra = 10;
+  else if (['6XL', '7XL'].includes(sz)) extra = 20;
+  else if (sz === '8XL') extra = 25;
+  
+  return (350 + extra) * qty;
+}
+
+function SlipImage({ url, fallbackDriveUrl }: { url?: string | null, fallbackDriveUrl?: string | null }) {
+  const [error, setError] = React.useState(false);
+  const targetUrl = url || fallbackDriveUrl;
+
+  if (!targetUrl) return null;
+
+  if (error) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: 'var(--space-6)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-3)', flex: 1, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', padding: 12, background: 'var(--color-bg-subtle)', borderRadius: '50%', color: 'var(--color-primary)' }}>
+            <FileImage size={24} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>รูปภาพสลิปการโอนเงิน</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>ขนาดรูปใหญ่เกินไป หรือเกิดข้อผิดพลาด</p>
+          </div>
+        </div>
+        <a
+          href={targetUrl as string}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ 
+            padding: 'var(--space-3)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6,
+            fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none',
+            borderTop: '1px solid var(--color-border)', background: 'var(--color-bg)'
+          }}
+        >
+          เปิดดูรูปสลิป <ExternalLink size={14} />
+        </a>
+      </div>
+    );
+  }
+
+  // If using Google Drive URL (fallback), we might still need the uc?id= format to render as image
+  let imageSrc = targetUrl;
+  if (imageSrc.includes('drive.google.com')) {
+    const u = new URL(imageSrc);
+    let id = u.searchParams.get('id');
+    if (!id) {
+      const match = imageSrc.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) id = match[1];
+    }
+    if (id) imageSrc = `https://drive.google.com/uc?id=${id}`;
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imageSrc}
+        alt="Slip Preview"
+        style={{ maxWidth: '100%', maxHeight: 400, objectFit: 'contain' }}
+        onError={() => setError(true)}
+      />
+      <a
+        href={targetUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ 
+          position: 'absolute', bottom: 12, right: 12,
+          padding: '6px 12px', background: 'rgba(0,0,0,0.6)', color: '#fff', borderRadius: 'var(--radius-full)',
+          fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none',
+          backdropFilter: 'blur(4px)'
+        }}
+      >
+        ดูรูปเต็ม <ExternalLink size={12} />
+      </a>
+    </div>
+  );
 }
 
 export function SearchTab({
@@ -102,7 +185,7 @@ export function SearchTab({
 
           {/* Order Details Bento */}
           <div style={{ 
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', 
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', 
             background: 'var(--color-border)', border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0
           }}>
@@ -110,6 +193,7 @@ export function SearchTab({
               { label: 'ลำดับคิว', value: `#${result.order.displayId || result.order.rowIndex}` },
               { label: 'ไซส์เสื้อ',  value: result.order.size as string || '-' },
               { label: 'จำนวน', value: `${result.order.quantity} ตัว` },
+              { label: 'ยอดรวม', value: `${calculatePrice(result.order.size as string, result.order.quantity as number)} ฿` },
             ].map(({ label, value }) => (
               <div key={label} style={{
                 background: 'var(--color-surface)', padding: 'var(--space-3) var(--space-2)', 
@@ -155,32 +239,7 @@ export function SearchTab({
                   overflow: 'hidden',
                   display: 'flex', flexDirection: 'column'
                 }}>
-                  {getDriveId(result.order.slipUrl as string) ? (
-                    <iframe
-                      src={`https://drive.google.com/file/d/${getDriveId(result.order.slipUrl as string)}/preview`}
-                      width="100%"
-                      height="350"
-                      style={{ border: 'none', background: '#fff' }}
-                      allow="autoplay"
-                    ></iframe>
-                  ) : (
-                    <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
-                      <FileImage size={24} style={{ opacity: 0.3, marginBottom: 'var(--space-2)' }} />
-                      <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ไม่สามารถแสดงตัวอย่างสลิปได้</p>
-                    </div>
-                  )}
-                  <a
-                    href={result.order.slipUrl as string}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ 
-                      padding: 'var(--space-3)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6,
-                      fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none',
-                      borderTop: '1px solid var(--color-border)'
-                    }}
-                  >
-                    ดูสลิปเต็มจอ <FileImage size={12} />
-                  </a>
+                  <SlipImage url={result.order.supabaseSlipUrl} fallbackDriveUrl={result.order.slipUrl as string} />
                 </div>
               )}
             </div>
@@ -479,7 +538,7 @@ export function AllOrdersTab({
 
             {/* Bento Details */}
             <div style={{ 
-              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', 
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', 
               background: 'var(--color-border)', border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0
             }}>
@@ -487,6 +546,7 @@ export function AllOrdersTab({
                 { label: 'ลำดับคิว', value: `#${selectedOrder.displayId || selectedOrder.rowIndex}` },
                 { label: 'ไซส์เสื้อ',  value: selectedOrder.size || '-' },
                 { label: 'จำนวน', value: `${selectedOrder.quantity} ตัว` },
+                { label: 'ยอดรวม', value: `${calculatePrice(selectedOrder.size, selectedOrder.quantity)} ฿` },
               ].map(({ label, value }) => (
                 <div key={label} style={{
                   background: 'var(--color-surface)', padding: 'var(--space-3) var(--space-2)', 
@@ -516,20 +576,7 @@ export function AllOrdersTab({
                   background: 'var(--color-muted)', borderRadius: 'var(--radius-md)', overflow: 'hidden', 
                   border: '1px solid var(--color-border)', position: 'relative'
                 }}>
-                  {getDriveId(selectedOrder.slipUrl) ? (
-                    <iframe
-                      src={`https://drive.google.com/file/d/${getDriveId(selectedOrder.slipUrl)}/preview`}
-                      width="100%"
-                      height="320"
-                      style={{ border: 'none', display: 'block', background: '#fff' }}
-                      allow="autoplay"
-                    />
-                  ) : (
-                    <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
-                      <FileImage size={24} style={{ opacity: 0.3, marginBottom: 'var(--space-2)' }} />
-                      <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>ไม่สามารถแสดงตัวอย่างสลิปได้</p>
-                    </div>
-                  )}
+                  <SlipImage url={selectedOrder.supabaseSlipUrl} fallbackDriveUrl={selectedOrder.slipUrl} />
                 </div>
               </div>
             ) : (

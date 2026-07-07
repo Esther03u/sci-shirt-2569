@@ -1,53 +1,55 @@
 // app/api/distribute/orders/route.ts
-// Distributor: ????????????????????? + ??????????? (??????????? admin)
+// Distributor: ดูออเดอร์ทั้งหมด + ค้นหาข้อมูล (คล้ายๆ admin)
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchSheetData } from '@/lib/google-sheets';
 import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session) return NextResponse.json({ error: '????????????????' }, { status: 401 });
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const profile = await getDistributorProfile(session.user.id);
-  if (!profile) return NextResponse.json({ error: '?????????????????' }, { status: 403 });
+  if (!profile) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const url = req.nextUrl;
   const filter = url.searchParams.get('filter') ?? 'all'; // all | distributed | pending
   const search = url.searchParams.get('search')?.toLowerCase().trim() ?? '';
 
-  const [orders, supabase] = await Promise.all([
-    fetchSheetData(),
-    createServerSupabase(),
+  const supabase = await createServerSupabase();
+
+  const [
+    { data: recipients },
+    { data: distributions }
+  ] = await Promise.all([
+    supabase.from('recipients').select('*'),
+    supabase
+      .from('distributions')
+      .select('sheet_row_id, phone, distributed_at, distributors!distributions_distributed_by_fkey(name)')
+      .eq('cancelled', false)
   ]);
 
-  const { data: distributions } = await supabase
-    .from('distributions')
-    .select('sheet_row_id, phone, distributed_at, distributors!distributions_distributed_by_fkey(name)')
-    .eq('cancelled', false);
+  const orders = (recipients || []).map(r => ({
+    phone: r.identifier,
+    name: r.name,
+    ...(r.metadata as any)
+  }));
 
   const distMap = new Map(
     (distributions ?? []).map(d => [d.phone, d])
   );
 
   let enriched = orders.map(order => {
-    const rawPhoneCell = String(
-      order['เบอร์โทรศัพท์ติดต่อ'] || order['เบอร์โทรศัพท์'] || order['Phone'] || order['phone'] || order['เบอร์โทร'] || order['โทรศัพท์'] || ''
-    );
-    const allPhones = (rawPhoneCell.match(/[\d\-\s\(\)]{8,}/g) || [])
-      .map(p => p.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0'));
-    const searchPhones = [...order.phone.split(','), ...allPhones].join(',');
-
     return {
       rowIndex: order.rowIndex,
       displayId: order.displayId,
       name: order.name,
       phone: order.phone,
-      searchPhones,
+      searchPhones: order.searchPhones,
       size: order.size,
       quantity: order.quantity,
       branch: order.branch,
       slipUrl: order.slipUrl ?? null,
+      supabaseSlipUrl: order.supabaseSlipUrl ?? null,
       distribution: distMap.get(order.phone) ?? null,
     };
   });
@@ -65,8 +67,8 @@ export async function GET(req: NextRequest) {
   // Search by name or phone
   if (search) {
     enriched = enriched.filter(o =>
-      o.name.toLowerCase().includes(search) ||
-      o.searchPhones.includes(search)
+      (o.name || '').toLowerCase().includes(search) ||
+      (o.searchPhones || '').includes(search)
     );
   }
 
@@ -77,7 +79,7 @@ export async function GET(req: NextRequest) {
     }
     if (a.distribution && !b.distribution) return -1;
     if (!a.distribution && b.distribution) return 1;
-    return a.rowIndex - b.rowIndex;
+    return (a.rowIndex || 0) - (b.rowIndex || 0);
   });
 
   return NextResponse.json({

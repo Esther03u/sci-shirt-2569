@@ -1,7 +1,6 @@
 // app/api/search/route.ts
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { findOrderByPhone } from '@/lib/google-sheets';
 import { createServerSupabase } from '@/lib/supabase-server';
 
 export async function GET(req: NextRequest) {
@@ -11,13 +10,29 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const order = await findOrderByPhone(phone);
-    if (!order) {
+    const supabase = await createServerSupabase();
+    
+    // Fetch all recipients and filter in JS for robust search matching
+    const { data: recipients } = await supabase.from('recipients').select('*');
+    
+    const normalized = phone.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
+    
+    const matchedRecipient = (recipients || []).find(rec => {
+      const sp = (rec.metadata as any)?.searchPhones || '';
+      return sp.split(',').includes(normalized);
+    });
+
+    if (!matchedRecipient) {
       return NextResponse.json({ error: 'ไม่พบข้อมูลการสั่งซื้อ' }, { status: 404 });
     }
 
+    const order = {
+      phone: matchedRecipient.identifier,
+      name: matchedRecipient.name,
+      ...(matchedRecipient.metadata as any)
+    };
+
     // Check distribution status from Supabase
-    const supabase = await createServerSupabase();
     const { data: dist } = await supabase
       .from('distributions')
       .select('*, distributors!distributions_distributed_by_fkey(name)')
@@ -34,3 +49,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }, { status: 500 });
   }
 }
+

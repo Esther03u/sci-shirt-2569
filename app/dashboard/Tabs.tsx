@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   ChartBar, Users, Package, CheckCircle, Clock,
   MagnifyingGlass, XCircle, Gear, TrendUp, CaretDown, CaretUp, Megaphone,
-  Trophy, Medal, ShieldCheck, Shield, Star
+  Trophy, Medal, ShieldCheck, Shield, Star, ArrowsClockwise
 } from '@phosphor-icons/react';
 import { Order, Stats, DistStat, Filter, Distributor } from './types';
 
@@ -663,7 +663,8 @@ export function DistributorsTab({
 
 export function SettingsTab({
   announcementText, setAnnouncementText, savingAnnouncement, announcementOk, handleSaveAnnouncement,
-  regCode, setRegCode, savingCode, handleSaveRegCode, saveOk, stats
+  regCode, setRegCode, savingCode, handleSaveRegCode, saveOk, stats,
+  syncing, syncOk, handleSync
 }: {
   announcementText: string;
   setAnnouncementText: (s: string) => void;
@@ -676,6 +677,9 @@ export function SettingsTab({
   saveOk: boolean;
   handleSaveRegCode: () => void;
   stats: Stats;
+  syncing: boolean;
+  syncOk: boolean;
+  handleSync: () => void;
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: 600, margin: '0 auto' }}>
@@ -687,6 +691,33 @@ export function SettingsTab({
           บันทึกสำเร็จ!
         </div>
       )}
+
+      {/* Manual Sync */}
+      <div>
+        <div style={{ padding: '0 var(--space-4) var(--space-2)', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+          ดึงข้อมูลล่าสุด
+        </div>
+        <div className="app-list" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          <div className="app-list-item" style={{ flexDirection: 'column', alignItems: 'stretch', padding: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', padding: 6, background: 'var(--color-warning)', color: '#fff', borderRadius: 'var(--radius-md)' }}>
+                <ArrowsClockwise size={18} weight="fill" />
+              </div>
+              <span style={{ fontWeight: 600 }}>ดึงข้อมูลจาก Google Sheets</span>
+            </div>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+              ระบบถูกตั้งค่าให้อ่านข้อมูลจากฐานข้อมูลของตัวเองเพื่อความรวดเร็ว 
+              หากมีการแก้ไขข้อมูลใน Google Sheets กรุณากดปุ่มด้านล่างเพื่อซิงค์ข้อมูลล่าสุด
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-3)' }}>
+              {syncOk && <span style={{ color: 'var(--color-success-text)', fontSize: 'var(--text-sm)' }}>ซิงค์สำเร็จ!</span>}
+              <button onClick={handleSync} className="btn btn-warning btn-sm" disabled={syncing} style={{ minWidth: 120 }}>
+                {syncing ? <span className="spinner" style={{ width: 14, height: 14 }} /> : 'ซิงค์ข้อมูลเดี๋ยวนี้'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ประกาศระบบ */}
       <div>

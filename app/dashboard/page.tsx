@@ -72,7 +72,19 @@ export default function DashboardPage() {
       if (!user) { router.push('/login'); return; }
       loadData();
     });
-    const interval = setInterval(() => loadData(true, true), 30_000);
+
+    // Realtime subscription for distributions table
+    const channel = supabase
+      .channel('realtime-distributions')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'distributions' },
+        () => {
+          // Refresh data silently when there is a change
+          loadData(true, true);
+        }
+      )
+      .subscribe();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -93,10 +105,10 @@ export default function DashboardPage() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      clearInterval(interval);
+      supabase.removeChannel(channel);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [loadData, supabase]);
+  }, [loadData, supabase, router]);
 
   const filtered = useMemo(() => {
     return orders.filter(o => {
@@ -209,7 +221,25 @@ export default function DashboardPage() {
     finally { setSavingAnnouncement(false); }
   }
 
+  const [syncingData, setSyncingData] = useState(false);
+  const [syncOk, setSyncOk] = useState(false);
+  async function handleSync() {
+    setSyncingData(true); setSyncOk(false);
+    try {
+      const res = await fetch('/api/admin/sync', { method: 'POST' });
+      if (res.ok) {
+        setSyncOk(true); setTimeout(() => setSyncOk(false), 3000);
+        await loadData(true); // reload dashboard data
+      } else {
+        const d = await res.json();
+        setError(d.error || 'ซิงค์ข้อมูลล้มเหลว');
+      }
+    } catch { setError('เกิดข้อผิดพลาดในการซิงค์'); }
+    finally { setSyncingData(false); }
+  }
+
   const pct = stats.total > 0 ? Math.round((stats.distributed / stats.total) * 100) : 0;
+
 
   if (loading) {
     return (
@@ -293,6 +323,7 @@ export default function DashboardPage() {
               announcementText={announcementText} setAnnouncementText={setAnnouncementText}
               savingAnnouncement={savingAnnouncement} announcementOk={announcementOk} handleSaveAnnouncement={handleSaveAnnouncement}
               regCode={regCode} setRegCode={setRegCode} savingCode={savingCode} handleSaveRegCode={handleSaveRegCode} saveOk={saveOk} stats={stats}
+              syncing={syncingData} syncOk={syncOk} handleSync={handleSync}
             />
           )}
         </div>

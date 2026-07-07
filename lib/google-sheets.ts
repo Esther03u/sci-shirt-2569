@@ -1,6 +1,5 @@
 // lib/google-sheets.ts
 // Fetches data from Google Sheets via public CSV export (no auth required for public sheets)
-// Falls back to API with service account if available
 
 const SHEET_ID = process.env.GOOGLE_SHEETS_ID || '1Lbc8y8Te4YplBJNFPcJdQvxBB0hY2fvus51QS3uVwlg';
 
@@ -9,6 +8,7 @@ export interface ShirtOrder {
   displayId: string;
   timestamp: string;
   phone: string;
+  searchPhones: string;
   name: string;
   size: string;
   quantity: number;
@@ -19,7 +19,7 @@ export interface ShirtOrder {
   [key: string]: string | number | undefined;
 }
 
-export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]> {
+export async function fetchSheetData(): Promise<ShirtOrder[]> {
   // Try multiple gid values — Google Form responses may be on gid=0, 1, or 2
   // Also try without gid (exports first sheet by default)
   const gidsToTry = ['1257582283', '0', '1', '2', ''];
@@ -30,9 +30,8 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
       const gidParam = gid ? `&gid=${gid}` : '';
       const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv${gidParam}`;
 
-      // Use Next.js fetch caching instead of in-memory cache
       const res = await fetch(csvUrl, {
-        next: { revalidate: forceRefresh ? 0 : 60 }
+        next: { revalidate: 0 } // No cache, we only fetch manually during sync
       });
 
       if (!res.ok) {
@@ -51,8 +50,10 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
       const orders = parseCsv(csv);
       if (orders.length === 0) {
         console.warn(`[sheets] gid=${gid} parsed 0 orders (phone column not found?)`);
+        continue; // Keep trying other GIDs if this one yields no data
       }
 
+      // Success
       return orders;
     } catch (err) {
       lastError = err;
@@ -61,7 +62,7 @@ export async function fetchSheetData(forceRefresh = false): Promise<ShirtOrder[]
   }
 
   console.error('[sheets] All gid attempts failed. Last error:', lastError);
-  return [];
+  throw new Error('Failed to fetch data from Google Sheets');
 }
 
 function parseCsv(csv: string): ShirtOrder[] {
@@ -80,15 +81,24 @@ function parseCsv(csv: string): ShirtOrder[] {
       row[h] = values[idx] ?? '';
     });
 
+    const rawPhoneCell = String(
+      row['เบอร์โทรศัพท์ติดต่อ'] || row['เบอร์โทรศัพท์'] || row['Phone'] || row['phone'] || 
+      row['เบอร์โทร'] || row['โทรศัพท์'] || ''
+    );
+    const primaryPhone = normalizePhone(rawPhoneCell);
+
+    // Extract all potential phone numbers for robust searching
+    const allPhones = (rawPhoneCell.match(/[\d\-\s\(\)]{8,}/g) || [])
+      .map(p => p.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0'));
+    const searchPhones = [...(primaryPhone ? primaryPhone.split(',') : []), ...allPhones].join(',');
+
     // Normalize common column names (Thai and English)
     const order: ShirtOrder = {
       rowIndex: i,
       displayId: row['ลำดับ'] || row['No'] || row['ID'] || String(i),
       timestamp: row['Timestamp'] || row['เวลา'] || row['timestamp'] || '',
-      phone: normalizePhone(
-        row['เบอร์โทรศัพท์ติดต่อ'] || row['เบอร์โทรศัพท์'] || row['Phone'] || row['phone'] || 
-        row['เบอร์โทร'] || row['โทรศัพท์'] || ''
-      ),
+      phone: primaryPhone,
+      searchPhones,
       name: row['ชื่อ-นามสกุล'] || row['ชื่อ'] || row['Name'] || row['name'] || '',
       size: row['เลือกไซส์เสื้อ'] || row['เลือกไซส์เสื้อ (ดูรายละเอียดขนาดในตาราง)'] || row['ไซส์'] || row['ขนาด'] || row['Size'] || row['size'] || '',
       quantity: parseInt(row['จำนวนที่สั่งซื้อ (ตัว)'] || row['จำนวน'] || row['Quantity'] || '1') || 1,
@@ -126,7 +136,6 @@ function parseRow(line: string): string[] {
     if (ch === '"') {
       inQuote = !inQuote;
     } else if (ch === ',' && !inQuote) {
-      // Use substring instead of character-by-character concatenation for performance
       result.push(line.substring(start, i).trim());
       start = i + 1;
     }
@@ -163,34 +172,6 @@ function normalizePhone(phone: string | undefined): string {
   // If cell has multiple numbers (e.g. '062-661-9483 / 089-xxx' or '083-xxx และ 080-xxx'), take only the first
   const first = phone.split(/\s*[\/และ]\s*/)[0].trim();
   return first.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
-}
-
-export async function findOrderByPhone(phone: string, forceRefresh = false): Promise<ShirtOrder | null> {
-  const normalized = normalizePhone(phone).split(',')[0];
-  const orders = await fetchSheetData(forceRefresh);
-  return orders.find(o => {
-    // Check against normalized o.phone (which might contain commas)
-    if (o.phone.split(',').includes(normalized)) return true;
-
-    // Check against raw row fields to catch any other numbers separated by slash or space
-    const rawPhone = String(
-      o['เบอร์โทรศัพท์ติดต่อ'] || o['เบอร์โทรศัพท์'] || o['Phone'] || o['phone'] || o['เบอร์โทร'] || o['โทรศัพท์'] || ''
-    );
-    
-    const parts = rawPhone.split(/[^0-9\-]+/);
-    for (const p of parts) {
-      if (p.length >= 8) {
-        const clean = p.replace(/[\s\-\(\)]/g, '').replace(/^(\+66|66)/, '0');
-        if (clean === normalized) return true;
-      }
-    }
-    return false;
-  }) ?? null;
-}
-
-export async function findOrderByRowIndex(rowIndex: number, forceRefresh = false): Promise<ShirtOrder | null> {
-  const orders = await fetchSheetData(forceRefresh);
-  return orders.find(o => o.rowIndex === rowIndex) ?? null;
 }
 
 export function getOrderId(order: ShirtOrder): string {

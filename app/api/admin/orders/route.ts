@@ -1,7 +1,6 @@
 // app/api/admin/orders/route.ts — Full order list for admin dashboard
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { fetchSheetData } from '@/lib/google-sheets';
 import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
 
 export async function GET() {
@@ -13,12 +12,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const [orders, supabase] = await Promise.all([
-    fetchSheetData(true),
-    createServerSupabase(),
-  ]);
+  const supabase = await createServerSupabase();
 
-  const [{ data: distributions }, { data: allDistributors }] = await Promise.all([
+  const [
+    { data: recipients },
+    { data: distributions },
+    { data: allDistributors }
+  ] = await Promise.all([
+    supabase.from('recipients').select('*'),
     supabase
       .from('distributions')
       .select('*, distributors!distributions_distributed_by_fkey(name)')
@@ -28,6 +29,12 @@ export async function GET() {
       .select('id, name, email, role')
       .order('created_at', { ascending: true })
   ]);
+
+  const orders = (recipients || []).map(r => ({
+    phone: r.identifier,
+    name: r.name,
+    ...(r.metadata as any)
+  }));
 
   const distMap = new Map(
     (distributions ?? []).map(d => [d.phone, d])
@@ -57,14 +64,14 @@ export async function GET() {
     }
   });
 
-  // Sort by latest distribution at the top
+  // Sort by latest distribution at the top, then by rowIndex
   enriched.sort((a, b) => {
     if (a.distribution && b.distribution) {
       return new Date((b.distribution as any).distributed_at).getTime() - new Date((a.distribution as any).distributed_at).getTime();
     }
     if (a.distribution && !b.distribution) return -1;
     if (!a.distribution && b.distribution) return 1;
-    return a.rowIndex - b.rowIndex;
+    return (a.rowIndex || 0) - (b.rowIndex || 0);
   });
 
   return NextResponse.json({
@@ -74,3 +81,4 @@ export async function GET() {
     distributors: allDistributors ?? [],
   });
 }
+
