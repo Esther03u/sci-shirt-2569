@@ -1,6 +1,6 @@
 // app/api/admin/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase, getSession, getDistributorProfile } from '@/lib/supabase-server';
+import { getSession, getDistributorProfile, createAdminSupabase } from '@/lib/supabase-server';
 import { AdminSettingSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     }
     const { key, value } = validation.data;
 
-    const supabase = await createServerSupabase();
+    const supabase = await createAdminSupabase();
     const { error } = await supabase
       .from('settings')
       .upsert({ key, value }, { onConflict: 'key' });
