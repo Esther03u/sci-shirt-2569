@@ -48,16 +48,33 @@ export async function POST() {
     const uniqueRecipients = Array.from(uniqueRecipientsMap.values());
 
     // Upsert into Supabase (will update existing or insert new based on identifier=phone)
-    const { error } = await supabase
+    const { error: upsertError } = await supabase
       .from('recipients')
       .upsert(uniqueRecipients, { onConflict: 'identifier' });
 
-    if (error) {
-      console.error('[sync] Supabase upsert error:', error);
+    if (upsertError) {
+      console.error('[sync] Supabase upsert error:', upsertError);
       return NextResponse.json({ error: 'Failed to save to database' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, count: uniqueRecipients.length });
+    // Delete recipients that are no longer in Google Sheets
+    const incomingIdentifiers = new Set(uniqueRecipients.map(r => r.identifier));
+    const toDelete = (existingData || [])
+      .filter(r => !incomingIdentifiers.has(r.identifier))
+      .map(r => r.identifier);
+
+    if (toDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('recipients')
+        .delete()
+        .in('identifier', toDelete);
+        
+      if (deleteError) {
+        console.error('[sync] Supabase delete error:', deleteError);
+      }
+    }
+
+    return NextResponse.json({ success: true, count: uniqueRecipients.length, deleted: toDelete.length });
   } catch (error) {
     console.error('[sync] Fetch sheet data error:', error);
     return NextResponse.json({ error: 'Failed to fetch from Google Sheets' }, { status: 500 });
